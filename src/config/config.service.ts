@@ -11,10 +11,6 @@ class ConfigService {
     public getValue(key: string, throwOnMissing = true): string {
         const value = this.env[key];
         if (!value && throwOnMissing) {
-            console.log('Env: ' + process.env.NODE_ENV);
-
-            console.log(`config error - missing env.${key}`);
-
             throw new Error(`config error - missing env.${key}`);
         }
         return value;
@@ -37,6 +33,8 @@ class ConfigService {
     };
 
     private getPostgresDatabaseConfig() {
+        console.log(__dirname + '/../**/*.entity.{js,ts}');
+
         return {
             type: 'postgres',
             host: this.getValue('POSTGRES_HOST'),
@@ -48,6 +46,7 @@ class ConfigService {
             synchronize: JSON.parse(this.getValue('SYNCHRONIZE')),
             migrations: [__dirname + "/../migrations/**/*{.ts,.js}"],
         } as PostgresConnectionOptions
+
     };
 
     private getPostgresProductionDatabaseConfig() {
