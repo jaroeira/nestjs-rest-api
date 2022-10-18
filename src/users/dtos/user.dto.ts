@@ -8,4 +8,25 @@ export class UserDto {
 
     @Expose()
     email: string;
+
+    @Expose()
+    firstName: string;
+
+    @Expose()
+    lastName: string;
+
+    @Expose()
+    role: string;
+
+    @Expose()
+    emailVerified: boolean;
+
+    @Expose()
+    passwordChanged: Date;
+
+    @Expose()
+    updatedAt: Date;
+
+    @Expose()
+    createdAt: Date;
 }

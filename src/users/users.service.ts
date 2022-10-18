@@ -22,6 +22,8 @@ export class UsersService {
         const user = new User();
         user.email = userDto.email;
         user.passwordHash = hashedPassword;
+        user.firstName = userDto.firstName;
+        user.lastName = userDto.lastName;
 
         const newUser = await this.userRepo.save(user);
 
@@ -55,6 +57,27 @@ export class UsersService {
         const user = await this.findOne(id);
 
         return this.userRepo.remove(user);
+    }
+
+    async validate(email: string, password: string): Promise<User | undefined> {
+        const user = await this.userRepo.findOneBy({ email });
+
+        if (user) {
+            const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+            if (passwordMatch) return user;
+        }
+
+    }
+
+    async changeUserPassword(id: number, newPassword: string) {
+        const user = await this.findOne(id);
+
+        const newPasswordHash = await bcrypt.hash(newPassword, BcryptConstants.saltRounds);
+
+        user.passwordHash = newPasswordHash;
+        user.passwordChanged = new Date();
+        const updatedUser = await this.userRepo.save(user);
+        return updatedUser;
     }
 
     private async throwIfEmailIsNotAvailable(email: string, id?: number) {

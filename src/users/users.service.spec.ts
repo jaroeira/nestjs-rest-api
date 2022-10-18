@@ -44,7 +44,7 @@ describe('UsersService', () => {
   });
 
   it('should find a user', async () => {
-    const user: User = { id: 1, email: 'test@test.com', passwordHash: 'sdfsfsdfsdf' };
+    const user: Partial<User> = { id: 1, email: 'test@test.com', passwordHash: 'sdfsfsdfsdf' };
     repositoryMock.findOneBy.mockReturnValue(Promise.resolve(user));
 
     const result = await service.findOne(user.id);
@@ -65,10 +65,10 @@ describe('UsersService', () => {
   });
 
   it('should throw - Email in use', async () => {
-    const user: User = { id: 1, email: 'test@test.com', passwordHash: 'sdfsfsdfsdf' };
+    const user: Partial<User> = { id: 1, email: 'test@test.com', passwordHash: 'sdfsfsdfsdf' };
     repositoryMock.findOneBy.mockReturnValue(Promise.resolve(user));
 
-    const createUserDto: CreateUserDto = { email: 'test@test.com', password: '12345678' };
+    const createUserDto: CreateUserDto = { email: 'test@test.com', password: '12345678', firstName: '', lastName: '' };
 
     try {
       await service.create(createUserDto);
@@ -81,7 +81,7 @@ describe('UsersService', () => {
   it('should encrypt password', async () => {
     repositoryMock.findOneBy.mockReturnValue(Promise.resolve(undefined));
     repositoryMock.save.mockImplementation((x) => (x));
-    const createUserDto: CreateUserDto = { email: 'test@test.com', password: '12345678' };
+    const createUserDto: CreateUserDto = { email: 'test@test.com', password: '12345678', firstName: '', lastName: '' };
     const result = await service.create(createUserDto);
 
     expect(result.passwordHash).not.toBe(createUserDto.password);
@@ -102,7 +102,7 @@ describe('UsersService', () => {
   });
 
   it('should throw email in use on update', async () => {
-    const user: User = { id: 2, email: 'test@test.com', passwordHash: 'sdfsfsdfsdf' };
+    const user: Partial<User> = { id: 2, email: 'test@test.com', passwordHash: 'sdfsfsdfsdf' };
     repositoryMock.findOneBy.mockReturnValue(Promise.resolve(user));
     repositoryMock.save.mockImplementation((x) => (x));
 
@@ -127,7 +127,7 @@ describe('UsersService', () => {
   });
 
   it('should return removed user', async () => {
-    const user: User = { id: 1, email: 'test@test.com', passwordHash: 'sdfsfsdfsdf' };
+    const user: Partial<User> = { id: 1, email: 'test@test.com', passwordHash: 'sdfsfsdfsdf' };
     repositoryMock.findOneBy.mockReturnValue(Promise.resolve(user));
     repositoryMock.remove.mockImplementation((x) => (x));
     const result = await service.remove(1);
@@ -137,7 +137,7 @@ describe('UsersService', () => {
   });
 
   it('should return updated user', async () => {
-    const user: User = { id: 1, email: 'test@test.com', passwordHash: 'sdfsfsdfsdf' };
+    const user: Partial<User> = { id: 1, email: 'test@test.com', passwordHash: 'sdfsfsdfsdf' };
     repositoryMock.save.mockImplementation((x) => (x));
     repositoryMock.findOneBy.mockReturnValueOnce(Promise.resolve(user)).mockReturnValue(Promise.resolve(undefined));
 
@@ -154,6 +154,45 @@ describe('UsersService', () => {
 
     expect(result).toBeDefined();
     expect(result.email).toBe('test@test.com');
+
+  });
+
+  it('should validate password', async () => {
+    const hashedPassword = '$2b$12$gHcY6IYYGfhk0Z1vwajBgexXqLrkJcKWZOK4PFNgOIm45mt0OWIX.';
+    const password = '12345678';
+    const wrongPassword = '123456789';
+    const email = 'test@test.com';
+
+    const user: Partial<User> = { id: 1, email: email, passwordHash: hashedPassword }
+
+    repositoryMock.findOneBy.mockReturnValue(Promise.resolve(user));
+
+    const result = await service.validate(email, password);
+    expect(result).toBeDefined();
+
+    const result2 = await service.validate(email, wrongPassword);
+    expect(result2).not.toBeDefined();
+
+  });
+
+  it('should change users password', async () => {
+    const hashedPassword = '$2b$12$gHcY6IYYGfhk0Z1vwajBgexXqLrkJcKWZOK4PFNgOIm45mt0OWIX.';
+    const newPassword = '123456789';
+    const email = 'test@test.com';
+    const user: Partial<User> = { id: 1, email: email, passwordHash: hashedPassword };
+
+    repositoryMock.findOneBy.mockReturnValue(Promise.resolve(user));
+    repositoryMock.save.mockImplementation((x) => (x));
+
+    const result = await service.changeUserPassword(1, newPassword);
+
+    expect(result).toBeDefined();
+    expect(result.passwordChanged).toBeDefined();
+
+    repositoryMock.findOneBy.mockReturnValue(Promise.resolve(result));
+    const validation = await service.validate(email, newPassword);
+
+    expect(validation).toBeDefined();
 
   });
 

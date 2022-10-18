@@ -1,5 +1,6 @@
 import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { Serialize } from 'src/interceptors/serialize.interceptor';
+import { ChangeUserPasswordDto } from './dtos/change-user-password.dto';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserDto } from './dtos/user.dto';
@@ -47,6 +48,14 @@ export class UsersController {
         if (Number.isNaN(userId)) return new BadRequestException('id must be a number');
 
         return this.userService.remove(userId);
+    }
+
+    @Serialize(UserDto)
+    @Post('/change-password')
+    async changeUsersPassword(@Body() body: ChangeUserPasswordDto) {
+        const updatedUser = await this.userService.changeUserPassword(body.id, body.newPassword);
+
+        return updatedUser;
     }
 
 }
