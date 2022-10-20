@@ -1,4 +1,5 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Serialize } from '../interceptors/serialize.interceptor';
 import { ChangeUserPasswordDto } from './dtos/change-user-password.dto';
 import { CreateUserDto } from './dtos/create-user.dto';
@@ -11,6 +12,7 @@ export class UsersController {
 
     constructor(private userService: UsersService) { }
 
+    @UseGuards(JwtAuthGuard)
     @Serialize(UserDto)
     @Get()
     findAllUsers() {
