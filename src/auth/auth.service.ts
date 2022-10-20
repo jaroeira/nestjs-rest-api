@@ -15,7 +15,7 @@ export class AuthService {
         return this.usersService.validate(email, password);
     }
 
-    signInUser(user: User) {
+    generateAccessToken(user: User) {
         const payload = { email: user.email, sub: user.id };
 
         return {

@@ -17,7 +17,7 @@ export class AuthController {
         const { user } = req;
 
         //generate jwt token
-        return this.authService.signInUser(user);
+        return this.authService.generateAccessToken(user);
     }
 
 }
