@@ -11,8 +11,10 @@ import { UserDto } from './dtos/user.dto';
 import { UsersService } from './users.service';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { User } from './user.entity';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
-
+@ApiTags('Users')
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.Admin)
 @Controller('users')
@@ -20,6 +22,7 @@ export class UsersController {
 
     constructor(private userService: UsersService) { }
 
+    @ApiOperation({ summary: 'Get all users' })
     @Get()
     @Serialize(UserDto)
     findAllUsers() {
@@ -36,6 +39,7 @@ export class UsersController {
     }
 
 
+    @ApiOperation({ summary: 'Create a new user' })
     @Post()
     @Serialize(UserDto)
     createUser(@Body() body: CreateUserDto) {
@@ -43,6 +47,7 @@ export class UsersController {
     }
 
 
+    @ApiOperation({ summary: 'Update a user' })
     @Put('/:id')
     @Serialize(UserDto)
     updateUser(@Param('id') id: string, @Body() body: UpdateUserDto) {
@@ -51,7 +56,6 @@ export class UsersController {
 
         return this.userService.update(userId, body);
     }
-
 
     @Delete('/:id')
     @Serialize(UserDto)
