@@ -68,6 +68,12 @@ describe('Users API endpoints (e2e)', () => {
             .put('/users/2')
             .send({ "email": "create@test.com", "firstName": "Create", "lastName": "test" })
             .expect(401);
+
+        // Change Password
+        await request(app.getHttpServer())
+            .post('/users/change-password')
+            .send({ "id": 2, "newPassword": "123456789" })
+            .expect(401);
     });
 
 
@@ -204,4 +210,58 @@ describe('Users API endpoints (e2e)', () => {
 
 
     });
+
+    it('A non admin user should be able to change his own password', async () => {
+        const email = 'test@test.com';
+        const password = '12345678';
+
+        const response = await request(app.getHttpServer()).post('/auth/signin').send({ email, password });
+        const { access_token } = response.body;
+
+        expect(access_token).toBeDefined();
+
+        await request(app.getHttpServer())
+            .post('/users/change-password')
+            .send({ "id": 2, "newPassword": "123456789" })
+            .auth(access_token, { type: 'bearer' })
+            .expect(201).then(res => {
+                const { message, id } = res.body;
+                expect(id).toBe(2);
+                expect(message).toBe('Password changed!');
+            });
+    });
+
+    it('A non admin user should NOT be able to change other users password', async () => {
+        const email = 'test@test.com';
+        const password = '12345678';
+
+        const response = await request(app.getHttpServer()).post('/auth/signin').send({ email, password });
+        const { access_token } = response.body;
+
+        expect(access_token).toBeDefined();
+
+        await request(app.getHttpServer())
+            .post('/users/change-password')
+            .send({ "id": 1, "newPassword": "123456789" })
+            .auth(access_token, { type: 'bearer' })
+            .expect(403);
+    });
+
+    it('A admin user should be able to change other users password', async () => {
+        const email = 'admin@test.com';
+        const password = '12345678';
+
+        const response = await request(app.getHttpServer()).post('/auth/signin').send({ email, password });
+        const { access_token } = response.body;
+
+        expect(access_token).toBeDefined();
+
+        await request(app.getHttpServer())
+            .post('/users/change-password')
+            .send({ "id": 2, "newPassword": "123456789" })
+            .auth(access_token, { type: 'bearer' })
+            .expect(201);
+    });
+
+
 });
