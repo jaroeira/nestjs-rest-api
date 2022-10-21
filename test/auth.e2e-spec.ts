@@ -3,6 +3,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { AppModule } from "./../src/app.module";
 import * as request from 'supertest';
 import { User } from "../src/users/user.entity";
+import { getRepositoryToken } from "@nestjs/typeorm";
 
 
 describe('Auth System (e2e)', () => {
@@ -17,17 +18,17 @@ describe('Auth System (e2e)', () => {
         await app.init();
 
         //Create one test user
-        const userRepository = moduleFixture.get('UserRepository');
+        const userRepository = moduleFixture.get(getRepositoryToken(User));
         const user = new User();
         user.email = 'test@test.com';
-        user.passwordHash = '$2b$12$9PbJdX1YjSmkAx5/dXPJY.hs./azciFRLfb3mrvs0LUFCtH2Sv1rO';
+        user.passwordHash = '$2b$12$9PbJdX1YjSmkAx5/dXPJY.hs./azciFRLfb3mrvs0LUFCtH2Sv1rO'; //12345678
         user.firstName = 'Bob';
         user.lastName = 'Test';
         await userRepository.save(user);
 
     });
 
-    it('shoudl signin test user', () => {
+    it('should signin test user', () => {
         const email = 'test@test.com';
         const password = '12345678';
 
