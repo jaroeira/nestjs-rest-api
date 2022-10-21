@@ -6,13 +6,14 @@ import { User } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import { BcryptConstants } from '../constants/bcrypt/constants';
 import { UpdateUserDto } from './dtos/update-user.dto';
+import { Role } from '../auth/role.enum';
 
 @Injectable()
 export class UsersService {
 
     constructor(@InjectRepository(User) private userRepo: Repository<User>) { }
 
-    async create(userDto: CreateUserDto) {
+    async create(userDto: CreateUserDto, isAdmin: boolean = false) {
 
         await this.throwIfEmailIsNotAvailable(userDto.email);
 
@@ -24,6 +25,8 @@ export class UsersService {
         user.passwordHash = hashedPassword;
         user.firstName = userDto.firstName;
         user.lastName = userDto.lastName;
+
+        isAdmin ? user.role = Role.Admin : user.role = Role.User;
 
         const newUser = await this.userRepo.save(user);
 

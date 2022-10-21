@@ -5,7 +5,8 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { configService } from './config/config.service';
-import { APP_PIPE } from '@nestjs/core';
+import { APP_GUARD, APP_PIPE } from '@nestjs/core';
+import { RolesGuard } from './auth/guards/roles.guard';
 
 @Module({
   imports: [
@@ -21,7 +22,11 @@ import { APP_PIPE } from '@nestjs/core';
       useValue: new ValidationPipe({
         whitelist: true
       })
-    }
+    },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: RolesGuard
+    // }
   ],
 })
 export class AppModule { }
