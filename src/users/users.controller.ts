@@ -30,7 +30,7 @@ export class UsersController {
     @Serialize(UserDto)
     findUser(@Param('id') id: string) {
         const userId = parseInt(id);
-        if (Number.isNaN(userId)) return new BadRequestException('id must be a number');
+        if (Number.isNaN(userId)) throw new BadRequestException('id must be a number');
 
         return this.userService.findOne(userId);
     }
@@ -47,7 +47,7 @@ export class UsersController {
     @Serialize(UserDto)
     updateUser(@Param('id') id: string, @Body() body: UpdateUserDto) {
         const userId = parseInt(id);
-        if (Number.isNaN(userId)) return new BadRequestException('id must be a number');
+        if (Number.isNaN(userId)) throw new BadRequestException('id must be a number');
 
         return this.userService.update(userId, body);
     }
@@ -57,7 +57,7 @@ export class UsersController {
     @Serialize(UserDto)
     removeUser(@Param('id') id: string) {
         const userId = parseInt(id);
-        if (Number.isNaN(userId)) return new BadRequestException('id must be a number');
+        if (Number.isNaN(userId)) throw new BadRequestException('id must be a number');
 
         return this.userService.remove(userId);
     }
