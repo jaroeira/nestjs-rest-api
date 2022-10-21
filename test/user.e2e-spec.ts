@@ -41,14 +41,37 @@ describe('Users API endpoints (e2e)', () => {
 
     });
 
-    it('should refuse unauthenticated requests on GET /users', () => {
-        return request(app.getHttpServer())
+    it('should refuse unauthenticated requests on all /users routes', async () => {
+        // List All Users
+        await request(app.getHttpServer())
             .get('/users')
+            .expect(401);
+
+        // Find user by id
+        await request(app.getHttpServer())
+            .get('/users/1')
+            .expect(401);
+
+        // Delete user
+        await request(app.getHttpServer())
+            .delete('/users/2')
+            .expect(401);
+
+        // Create user
+        await request(app.getHttpServer())
+            .post('/users')
+            .send({ "email": "create@test.com", "password": "12345678", "firstName": "Create", "lastName": "test" })
+            .expect(401);
+
+        // Update user
+        await request(app.getHttpServer())
+            .put('/users/2')
+            .send({ "email": "create@test.com", "firstName": "Create", "lastName": "test" })
             .expect(401);
     });
 
 
-    it('should refuse requests on GET /users from non ADMIN users', async () => {
+    it('should refuse requests on all /users routes from non ADMIN users', async () => {
         const email = 'test@test.com';
         const password = '12345678';
 
@@ -57,8 +80,47 @@ describe('Users API endpoints (e2e)', () => {
 
         expect(access_token).toBeDefined();
 
-        return request(app.getHttpServer())
+        // List All Users
+        await request(app.getHttpServer())
             .get('/users')
+            .auth(access_token, { type: 'bearer' })
+            .expect(403).then(res => {
+                const { message } = res.body;
+                expect(message).toBe('Forbidden resource');
+            });
+
+        // Find user by id
+        await request(app.getHttpServer())
+            .get('/users/2')
+            .auth(access_token, { type: 'bearer' })
+            .expect(403).then(res => {
+                const { message } = res.body;
+                expect(message).toBe('Forbidden resource');
+            });
+
+        // Delete user
+        await request(app.getHttpServer())
+            .delete('/users/2')
+            .auth(access_token, { type: 'bearer' })
+            .expect(403).then(res => {
+                const { message } = res.body;
+                expect(message).toBe('Forbidden resource');
+            });
+
+        // Create user
+        await request(app.getHttpServer())
+            .post('/users')
+            .send({ "email": "create@test.com", "password": "12345678", "firstName": "Create", "lastName": "test" })
+            .auth(access_token, { type: 'bearer' })
+            .expect(403).then(res => {
+                const { message } = res.body;
+                expect(message).toBe('Forbidden resource');
+            });
+
+        // Update user
+        await request(app.getHttpServer())
+            .put('/users/2')
+            .send({ "email": "create@test.com", "firstName": "Create", "lastName": "test" })
             .auth(access_token, { type: 'bearer' })
             .expect(403).then(res => {
                 const { message } = res.body;
@@ -66,7 +128,7 @@ describe('Users API endpoints (e2e)', () => {
             });
     });
 
-    it('shoud allow authenticad admin requests on GET /users', async () => {
+    it('shoud allow authenticad admin requests on All /users routes', async () => {
         const email = 'admin@test.com';
         const password = '12345678';
 
@@ -75,10 +137,71 @@ describe('Users API endpoints (e2e)', () => {
 
         expect(access_token).toBeDefined();
 
-        return request(app.getHttpServer())
+        // List All Users
+        await request(app.getHttpServer())
             .get('/users')
             .auth(access_token, { type: 'bearer' })
+            .expect(200).then(res => {
+                const users = res.body;
+                expect(users).toBeDefined();
+                expect(users.length).toBe(2);
+            });
+
+        // Create user
+        await request(app.getHttpServer())
+            .post('/users')
+            .send({ "email": "create@test.com", "password": "12345678", "firstName": "Create", "lastName": "test" })
+            .auth(access_token, { type: 'bearer' })
+            .expect(201).then(res => {
+                const { id, email, role } = res.body;
+                expect(id).toBe(3);
+                expect(email).toBe('create@test.com');
+                expect(role).toBe(Role.User);
+            });
+
+        // Find user by id
+        await request(app.getHttpServer())
+            .get('/users/3')
+            .auth(access_token, { type: 'bearer' })
+            .expect(200).then(res => {
+                const { id, email, role } = res.body;
+                expect(id).toBe(3);
+                expect(email).toBe('create@test.com');
+                expect(role).toBe(Role.User);
+            });
+
+        // Update user
+        const updateRes = await request(app.getHttpServer())
+            .put('/users/3')
+            .send({ "email": "updated@test.com", "firstName": "Update", "lastName": "test" })
+            .auth(access_token, { type: 'bearer' })
             .expect(200);
+
+        await request(app.getHttpServer())
+            .get('/users/3')
+            .auth(access_token, { type: 'bearer' })
+            .expect(200).then(res => {
+                const { id, email, role } = res.body;
+                expect(id).toBe(3);
+                expect(email).toBe('updated@test.com');
+            });
+
+
+        // Delete user
+        await request(app.getHttpServer())
+            .delete('/users/3')
+            .auth(access_token, { type: 'bearer' })
+            .expect(200);
+
+
+        await request(app.getHttpServer())
+            .get('/users/3')
+            .auth(access_token, { type: 'bearer' })
+            .expect(404).then(res => {
+                const { message } = res.body;
+                expect(message).toBe('No user found with id 3');
+            });
+
 
     });
 });
