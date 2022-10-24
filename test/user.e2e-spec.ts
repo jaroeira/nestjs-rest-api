@@ -263,5 +263,23 @@ describe('Users API endpoints (e2e)', () => {
             .expect(201);
     });
 
+    it('should throw error if try to create an user with an email that is already taken', async () => {
+        const email = 'admin@test.com';
+        const password = '12345678';
+
+        const response = await request(app.getHttpServer()).post('/auth/signin').send({ email, password });
+        const { access_token } = response.body;
+
+        // Try to create user whith email that is not available
+        await request(app.getHttpServer())
+            .post('/users')
+            .send({ "email": "test@test.com", "password": "12345678", "firstName": "Create", "lastName": "test" })
+            .auth(access_token, { type: 'bearer' })
+            .expect(400).then(res => {
+                const { message } = res.body;
+                expect(message).toBe('Email in use');
+            });
+    });
+
 
 });
