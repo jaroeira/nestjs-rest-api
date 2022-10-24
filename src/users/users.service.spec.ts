@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { MailService } from '../mail/mail.service';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
@@ -22,8 +23,13 @@ export const repositoryMockFactory: () => MockType<Repository<any>> = jest.fn(()
 describe('UsersService', () => {
   let service: UsersService;
   let repositoryMock: MockType<Repository<User>>;
+  let fakeMailService;
 
   beforeEach(async () => {
+
+    fakeMailService = {
+      sendUserConfirmation: (user: User) => Promise.resolve()
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -31,6 +37,10 @@ describe('UsersService', () => {
         {
           provide: getRepositoryToken(User),
           useFactory: repositoryMockFactory
+        },
+        {
+          provide: MailService,
+          useValue: fakeMailService
         }
       ],
     }).compile();

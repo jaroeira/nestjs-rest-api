@@ -24,6 +24,9 @@ export class User {
     @Column({ default: false })
     emailVerified: boolean;
 
+    @Column({ length: 100, nullable: true })
+    verificationToken: string;
+
     @Column({ nullable: true })
     passwordChanged: Date;
 

@@ -1,4 +1,4 @@
-import { Controller, Post, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { Serialize } from 'src/interceptors/serialize.interceptor';
 import { AuthService } from './auth.service';
@@ -20,6 +20,11 @@ export class AuthController {
 
         //generate jwt token
         return this.authService.generateAccessToken(user);
+    }
+
+    @Get('/verify-email')
+    verifyEmail() {
+        return 'verify email';
     }
 
 }

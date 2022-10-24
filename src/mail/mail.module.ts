@@ -7,6 +7,7 @@ import { configService } from '../config/config.service';
     imports: [
         MailerModule.forRoot(configService.getMailerConfig())
     ],
-    providers: [MailService]
+    providers: [MailService],
+    exports: [MailService]
 })
 export class MailModule { }

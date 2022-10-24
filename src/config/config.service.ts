@@ -4,6 +4,8 @@ import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionO
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { MailerOptions } from '@nestjs-modules/mailer';
+import { join } from 'path';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 
 class ConfigService {
 
@@ -96,7 +98,14 @@ class ConfigService {
                 }
             },
             defaults: {
-                from: `No Reply <${this.getValue('EMAIL_FROM')}>`
+                from: this.getValue('EMAIL_FROM')
+            },
+            template: {
+                dir: join(__dirname, '..', 'mail', 'templates'),
+                adapter: new HandlebarsAdapter(),
+                options: {
+                    strict: true
+                }
             }
         };
     }

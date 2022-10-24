@@ -7,11 +7,16 @@ import * as bcrypt from 'bcrypt';
 import { BcryptConstants } from '../constants/bcrypt/constants';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { Role } from '../auth/role.enum';
+import { randomBytes } from 'crypto';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class UsersService {
 
-    constructor(@InjectRepository(User) private userRepo: Repository<User>) { }
+    constructor(
+        @InjectRepository(User) private userRepo: Repository<User>,
+        private mailService: MailService
+    ) { }
 
     async create(userDto: CreateUserDto, isAdmin: boolean = false) {
 
@@ -20,15 +25,21 @@ export class UsersService {
         // Hash password with bcrypt
         const hashedPassword = await bcrypt.hash(userDto.password, BcryptConstants.saltRounds);
 
+        // Create verification token to validate users email
+        const verificationToken = randomBytes(30).toString('hex');
+
         const user = new User();
         user.email = userDto.email;
         user.passwordHash = hashedPassword;
         user.firstName = userDto.firstName;
         user.lastName = userDto.lastName;
+        user.verificationToken = verificationToken;
 
         isAdmin ? user.role = Role.Admin : user.role = Role.User;
 
         const newUser = await this.userRepo.save(user);
+
+        await this.mailService.sendUserConfirmation(user);
 
         return newUser;
     }
@@ -90,4 +101,5 @@ export class UsersService {
             throw new BadRequestException('Email in use');
         }
     }
+
 }
