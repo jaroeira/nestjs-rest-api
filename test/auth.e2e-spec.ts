@@ -4,6 +4,7 @@ import { AppModule } from "./../src/app.module";
 import * as request from 'supertest';
 import { User } from "../src/users/user.entity";
 import { getRepositoryToken } from "@nestjs/typeorm";
+import { Role } from "../src/auth/role.enum";
 
 
 describe('Auth System (e2e)', () => {
@@ -24,7 +25,21 @@ describe('Auth System (e2e)', () => {
         user.passwordHash = '$2b$12$9PbJdX1YjSmkAx5/dXPJY.hs./azciFRLfb3mrvs0LUFCtH2Sv1rO'; //12345678
         user.firstName = 'Bob';
         user.lastName = 'Test';
+        user.role = Role.Admin;
+        user.verificationToken = 'abcde';
+        user.emailVerified = true;
         await userRepository.save(user);
+
+
+        const unverifiedUser = new User();
+        unverifiedUser.email = 'unverified@test.com';
+        unverifiedUser.passwordHash = '$2b$12$9PbJdX1YjSmkAx5/dXPJY.hs./azciFRLfb3mrvs0LUFCtH2Sv1rO'; //12345678
+        unverifiedUser.firstName = 'Unverified';
+        unverifiedUser.lastName = 'Test';
+        unverifiedUser.role = Role.User;
+        unverifiedUser.emailVerified = false;
+        unverifiedUser.verificationToken = 'abcdef'
+        await userRepository.save(unverifiedUser);
 
     });
 
@@ -59,4 +74,45 @@ describe('Auth System (e2e)', () => {
                 expect(message).toBe('Unauthorized');
             });
     });
+
+
+    it('shold not be able to sign in with an unverified user', async () => {
+        const email = 'unverified@test.com';
+        const password = '12345678';
+
+        return request(app.getHttpServer())
+            .post('/auth/signin')
+            .send({ email, password })
+            .expect(401)
+            .then(res => {
+                const { message } = res.body;
+                expect(message).toBe('Email must be verified');
+            });
+    });
+
+    it('should verify an user email', async () => {
+        const email = 'unverified@test.com';
+        const password = '12345678';
+        const token = 'abcdef';
+
+        await request(app.getHttpServer())
+            .get('/auth/verify-email?token=' + token)
+            .expect(200)
+            .then(res => {
+                const { message } = res.body;
+                expect(message).toBe('email address was successfully verified');
+            });
+
+        await request(app.getHttpServer())
+            .post('/auth/signin')
+            .send({ email, password })
+            .expect(201)
+            .then(res => {
+                const { id, email, access_token } = res.body;
+                expect(id).toBeDefined();
+                expect(email).toBeDefined();
+                expect(access_token).toBeDefined();
+            });
+    });
+
 });

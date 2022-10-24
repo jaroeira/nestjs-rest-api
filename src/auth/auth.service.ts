@@ -27,4 +27,8 @@ export class AuthService {
         };
     }
 
+    verifyUsersEmail(token: string) {
+        return this.usersService.verifyUserEmail(token);
+    }
+
 }

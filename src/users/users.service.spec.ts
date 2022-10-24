@@ -206,5 +206,16 @@ describe('UsersService', () => {
 
   });
 
+  it('shoud verify users email', async () => {
+    const user: Partial<User> = { id: 1, email: 'test@test.com', passwordHash: 'sdfsfsdfsdf', verificationToken: 'abc', emailVerified: false };
+    repositoryMock.findOneBy.mockReturnValue(Promise.resolve(user));
+    repositoryMock.save.mockImplementation((x) => (x));
+
+    const result = await service.verifyUserEmail('abc');
+
+    expect(result.message).toBe('email address was successfully verified');
+
+  });
+
 
 });

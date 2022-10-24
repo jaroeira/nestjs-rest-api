@@ -6,12 +6,14 @@ import { Repository } from "typeorm";
 import { User } from "../src/users/user.entity";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { Role } from "../src/auth/role.enum";
+import { MailService } from "../src/mail/mail.service";
 
 
 
 describe('Users API endpoints (e2e)', () => {
     let app: INestApplication;
     let userRepository: Repository<User>;
+    let mailService;
 
     beforeEach(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -22,6 +24,8 @@ describe('Users API endpoints (e2e)', () => {
         await app.init();
 
         userRepository = moduleFixture.get(getRepositoryToken(User));
+        mailService = moduleFixture.get<MailService>(MailService);
+        mailService.sendUserConfirmation = jest.fn(entity => entity);
 
         const adminUser = new User();
         adminUser.email = 'admin@test.com';
@@ -29,6 +33,7 @@ describe('Users API endpoints (e2e)', () => {
         adminUser.firstName = 'Admin';
         adminUser.lastName = 'Test';
         adminUser.role = Role.Admin;
+        adminUser.emailVerified = true;
         await userRepository.save(adminUser);
 
         const user = new User();
@@ -37,11 +42,13 @@ describe('Users API endpoints (e2e)', () => {
         user.firstName = 'User';
         user.lastName = 'Test';
         user.role = Role.User;
+        user.emailVerified = true;
         await userRepository.save(user);
 
     });
 
     it('should refuse unauthenticated requests on all /users routes', async () => {
+
         // List All Users
         await request(app.getHttpServer())
             .get('/users')

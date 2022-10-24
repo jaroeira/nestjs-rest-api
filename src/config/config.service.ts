@@ -36,7 +36,6 @@ class ConfigService {
     };
 
     private getPostgresDatabaseConfig() {
-        console.log(__dirname + '/../**/*.entity.{js,ts}');
 
         return {
             type: 'postgres',

@@ -83,6 +83,19 @@ export class UsersService {
 
     }
 
+    async verifyUserEmail(token: string) {
+        const user = await this.userRepo.findOneBy({ verificationToken: token });
+
+        if (!user) return { message: 'verification failed. invalid token' };
+
+        user.emailVerified = true;
+        user.verificationToken = null;
+
+        await this.userRepo.save(user);
+
+        return { message: 'email address was successfully verified' };
+    }
+
     async changeUserPassword(id: number, newPassword: string) {
         const user = await this.findOne(id);
 
@@ -97,6 +110,7 @@ export class UsersService {
     private async throwIfEmailIsNotAvailable(email: string, id?: number) {
         //Check in DataBase if email already exists
         const user = await this.userRepo.findOneBy({ email });
+
         if (user && (!id || user.id !== id)) {
             throw new BadRequestException('Email in use');
         }

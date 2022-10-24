@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { Serialize } from 'src/interceptors/serialize.interceptor';
 import { AuthService } from './auth.service';
@@ -23,8 +23,11 @@ export class AuthController {
     }
 
     @Get('/verify-email')
-    verifyEmail() {
-        return 'verify email';
+    verifyEmail(@Query('token') token: string) {
+
+        if (!token || token === '') throw new BadRequestException('invalid token');
+
+        return this.authService.verifyUsersEmail(token);
     }
 
 }
