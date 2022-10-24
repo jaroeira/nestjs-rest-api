@@ -7,11 +7,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { configService } from './config/config.service';
 import { APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { RolesGuard } from './auth/guards/roles.guard';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
     UsersModule,
     AuthModule,
+    MailModule,
     TypeOrmModule.forRoot(configService.getTypeOrmModuleConfig())
   ],
   controllers: [AppController],
@@ -23,10 +25,6 @@ import { RolesGuard } from './auth/guards/roles.guard';
         whitelist: true
       })
     },
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: RolesGuard
-    // }
   ],
 })
 export class AppModule { }

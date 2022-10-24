@@ -3,6 +3,7 @@ import * as dotenv from 'dotenv';
 import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { MailerOptions } from '@nestjs-modules/mailer';
 
 class ConfigService {
 
@@ -78,6 +79,26 @@ class ConfigService {
 
     public getTypeOrmModuleConfig(): TypeOrmModuleOptions {
         return this.getTypeOrmDatabaseOptions() as TypeOrmModuleOptions;
+    }
+
+    public getMailerConfig(): MailerOptions {
+        return {
+            transport: {
+                host: this.getValue('EMAIL_HOST'),
+                port: 587,
+                tls: {
+                    ciphers: 'SSLv3',
+                },
+                secure: false,
+                auth: {
+                    user: this.getValue('EMAIL_ID'),
+                    pass: this.getValue('EMAIL_PASSWORD')
+                }
+            },
+            defaults: {
+                from: `No Reply <${this.getValue('EMAIL_FROM')}>`
+            }
+        };
     }
 
 }
