@@ -5,6 +5,7 @@ import * as request from 'supertest';
 import { User } from "../src/users/user.entity";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { Role } from "../src/auth/role.enum";
+import * as cookieParser from 'cookie-parser';
 
 
 describe('Auth System (e2e)', () => {
@@ -16,6 +17,7 @@ describe('Auth System (e2e)', () => {
         }).compile();
 
         app = moduleFixture.createNestApplication();
+        app.use(cookieParser());
         await app.init();
 
         //Create one test user
@@ -113,6 +115,51 @@ describe('Auth System (e2e)', () => {
                 expect(email).toBeDefined();
                 expect(access_token).toBeDefined();
             });
+    });
+
+    it('should refresh token', async () => {
+        const email = 'test@test.com';
+        const password = '12345678';
+
+        let cookie: any;
+
+        const authResponse = await request.agent(app.getHttpServer())
+            .post('/auth/signin')
+            .send({ email, password })
+            .expect(201)
+            .then(res => {
+                const { id, email, access_token } = res.body;
+                expect(id).toBeDefined();
+                expect(email).toBeDefined();
+                expect(access_token).toBeDefined();
+
+                console.log('access_token-1', res.body);
+
+                return res;
+            });
+
+        cookie = authResponse.get('Set-Cookie');
+
+        // TODO: verify if acess token changed
+        const refreshResponse = await request(app.getHttpServer())
+            .post('/auth/refresh-token')
+            .set('cookie', cookie)
+            .send()
+            .expect(201)
+            .then(res => {
+                const { id, email, access_token } = res.body;
+                expect(id).toBeDefined();
+                expect(email).toBeDefined();
+                expect(access_token).toBeDefined();
+
+                return res;
+            });
+
+        // console.log('authResponse.body.access_token', authResponse.body.access_token);
+        // console.log('refreshResponse.body.access_token', refreshResponse.body.access_token);
+
+
+        // expect(authResponse.body.access_token).not.toBe(refreshResponse.body.access_token);
     });
 
 });

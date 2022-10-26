@@ -6,14 +6,19 @@ import { AuthController } from './auth.controller';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { JwtRefreshTokenStrategy } from './strategies/jwt-refresh.strategy';
 
 import { configService } from '../config/config.service';
+import { RefreshToken } from './refreshToken.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
+    TypeOrmModule.forFeature([RefreshToken]),
     JwtModule.register({
       secret: configService.getValue('JWT_ACCESS_TOKEN_SECRET'),
       signOptions: {
@@ -21,7 +26,7 @@ import { configService } from '../config/config.service';
       }
     })
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy, JwtRefreshTokenStrategy],
   controllers: [AuthController]
 })
 export class AuthModule { }

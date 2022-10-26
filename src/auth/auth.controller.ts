@@ -1,9 +1,14 @@
-import { BadRequestException, Controller, Get, Post, Query, Request, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Ip, Post, Query, Request, Res, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
-import { Serialize } from 'src/interceptors/serialize.interceptor';
+import { Response } from 'express';
+import { Serialize } from '../interceptors/serialize.interceptor';
+import { CurrentUser } from '../users/decorators/current-user.decorator';
+import { User } from '../users/user.entity';
 import { AuthService } from './auth.service';
 import { AuthUserToReturnDto } from './dtos/auth-user-to-return.dto';
+import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { RefreshToken } from './refreshToken.entity';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -14,12 +19,34 @@ export class AuthController {
     // @Serialize(AuthUserToReturnDto)
     @UseGuards(LocalAuthGuard)
     @Post('/signin')
-    signin(@Request() req) {
+    async signin(@Request() req, @Ip() ipAddress: string, @Res({ passthrough: true }) res: Response) {
         // If user was successfully validated req obj will have a user property otherwise the route will respond 401
         const { user } = req;
 
-        //generate jwt token
-        return this.authService.generateAccessToken(user);
+        //generate jwt access token
+        const accessToken = this.authService.generateAccessToken(user);
+
+        //generate jwt refresh token
+        const token = this.authService.generateRefreshToken(user, ipAddress);
+
+        // Save refreshToken on DB
+        const refreshToken = new RefreshToken();
+        refreshToken.refreshToken = token.refresh_token;
+        refreshToken.expires = token.expirationDateTime;
+        refreshToken.user = user;
+        refreshToken.createdByIp = ipAddress;
+
+        await this.authService.saveRefreshToken(refreshToken);
+
+        //Create cookie with refresh token
+        this.setRefreshTokenCookie(token, res);
+
+        return {
+            id: user.id,
+            email: user.email,
+            access_token: accessToken.access_token,
+            access_token_expiration: accessToken.expirationDateTime,
+        };
     }
 
     @Get('/verify-email')
@@ -28,6 +55,50 @@ export class AuthController {
         if (!token || token === '') throw new BadRequestException('invalid token');
 
         return this.authService.verifyUsersEmail(token);
+    }
+
+    @UseGuards(JwtRefreshAuthGuard)
+    @Post('/refresh-token')
+    async refreshToken(@Body() body: any, @Ip() ipAddress: string, @CurrentUser() user: User, @Res({ passthrough: true }) res: Response) {
+
+        const oldRefreshTokenObj: RefreshToken = body.oldRefreshToken;
+
+        // replace old refresh token with a new one and save
+        const newToken = this.authService.generateRefreshToken(user, ipAddress);
+        const newRefreshTokenObj = new RefreshToken();
+        newRefreshTokenObj.refreshToken = newToken.refresh_token;
+        newRefreshTokenObj.expires = newToken.expirationDateTime;
+        newRefreshTokenObj.createdByIp = ipAddress;
+        newRefreshTokenObj.user = user;
+
+        oldRefreshTokenObj.revoked = new Date();
+        oldRefreshTokenObj.replacedByToken = newToken.refresh_token;
+
+        await this.authService.saveRefreshToken(oldRefreshTokenObj);
+        await this.authService.saveRefreshToken(newRefreshTokenObj);
+
+        //generate new jwt access token
+        const accessToken = this.authService.generateAccessToken(user);
+
+        //Create cookie with refresh token
+        this.setRefreshTokenCookie(newToken, res);
+
+        return {
+            id: user.id,
+            email: user.email,
+            access_token: accessToken.access_token,
+            access_token_expiration: accessToken.expirationDateTime,
+        };
+    }
+
+    private setRefreshTokenCookie(refreshToken: { refresh_token: string, expirationDateTime: Date }, res: Response) {
+
+        const cookieOptions = {
+            httpOnly: true,
+            expires: refreshToken.expirationDateTime
+        };
+
+        res.cookie('refreshToken', refreshToken, cookieOptions);
     }
 
 }
