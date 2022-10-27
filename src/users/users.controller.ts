@@ -44,7 +44,7 @@ export class UsersController {
         const user = new User();
         user.email = body.email;
         user.firstName = body.firstName;
-        user.lastName = body.lastName
+        user.lastName = body.lastName;
 
         return this.userService.create(user, body.password, body.isAdmin);
     }

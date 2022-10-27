@@ -11,6 +11,7 @@ import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { RefreshToken } from './refreshToken.entity';
+import { UserSignupDto } from './dtos/userSignup.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -20,6 +21,12 @@ export class AuthController {
         private authService: AuthService,
         private mailService: MailService
     ) { }
+
+    @Serialize(AuthUserToReturnDto)
+    @Post('/signup')
+    async signup(@Body() body: UserSignupDto) {
+        return this.authService.signupUser(body);
+    }
 
     // @Serialize(AuthUserToReturnDto)
     @UseGuards(LocalAuthGuard)

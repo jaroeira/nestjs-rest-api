@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RefreshToken } from './refreshToken.entity';
 import { JwtTokenPayload } from './interfaces/jwt.token.payload';
+import { UserSignupDto } from './dtos/userSignup.dto';
 
 
 @Injectable()
@@ -17,6 +18,16 @@ export class AuthService {
         private jwtService: JwtService,
         @InjectRepository(RefreshToken) private refrehTokenRepo: Repository<RefreshToken>
     ) { }
+
+    signupUser(userSignupDto: UserSignupDto) {
+
+        const user = new User();
+        user.email = userSignupDto.email;
+        user.firstName = userSignupDto.firstName;
+        user.lastName = userSignupDto.lastName;
+
+        return this.usersService.create(user, userSignupDto.password);
+    }
 
     validateUser(email: string, password: string): Promise<User> {
         return this.usersService.validate(email, password);
