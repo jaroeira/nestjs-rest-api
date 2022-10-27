@@ -8,7 +8,7 @@ export class RefreshToken {
     id: number;
 
     @Column({ length: 300 })
-    @Index({ unique: true })
+    @Index()
     refreshToken: string;
 
     @Column()

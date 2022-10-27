@@ -138,8 +138,10 @@ describe('Auth System (e2e)', () => {
 
         cookie = authResponse.get('Set-Cookie');
 
-        // wait 100ms
-        await new Promise((r) => setTimeout(r, 200));
+
+        // wait 250ms
+        await new Promise((r) => setTimeout(r, 250));
+
 
         const refreshResponse = await request(app.getHttpServer())
             .post('/auth/refresh-token')

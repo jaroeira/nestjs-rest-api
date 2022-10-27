@@ -12,7 +12,7 @@ import { configService } from '../config/config.service';
 import { RefreshToken } from './refreshToken.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MailModule } from '../mail/mail.module';
-import { MailService } from 'src/mail/mail.service';
+import { MailService } from '../mail/mail.service';
 
 
 

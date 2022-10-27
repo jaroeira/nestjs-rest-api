@@ -26,6 +26,7 @@ describe('Users API endpoints (e2e)', () => {
         userRepository = moduleFixture.get(getRepositoryToken(User));
         mailService = moduleFixture.get<MailService>(MailService);
         mailService.sendUserConfirmation = jest.fn(entity => entity);
+        mailService.sendUserResetPasswordEmail = jest.fn(entity => entity);
 
         const adminUser = new User();
         adminUser.email = 'admin@test.com';
