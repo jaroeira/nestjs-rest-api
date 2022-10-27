@@ -133,15 +133,13 @@ describe('Auth System (e2e)', () => {
                 expect(email).toBeDefined();
                 expect(access_token).toBeDefined();
 
-                console.log('access_token-1', access_token);
-
                 return res;
             });
 
         cookie = authResponse.get('Set-Cookie');
 
         // wait 100ms
-        await new Promise((r) => setTimeout(r, 100));
+        await new Promise((r) => setTimeout(r, 200));
 
         const refreshResponse = await request(app.getHttpServer())
             .post('/auth/refresh-token')
@@ -154,12 +152,48 @@ describe('Auth System (e2e)', () => {
                 expect(email).toBeDefined();
                 expect(access_token).toBeDefined();
 
-                console.log('access_token-2', access_token);
-
                 return res;
             });
 
         expect(authResponse.body.access_token).not.toBe(refreshResponse.body.access_token);
+    });
+
+    it('should revoke token', async () => {
+        const email = 'test@test.com';
+        const password = '12345678';
+
+        let cookie: any;
+
+        const authResponse = await request(app.getHttpServer())
+            .post('/auth/signin')
+            .send({ email, password })
+            .expect(201)
+            .then(res => {
+                const { id, email, access_token } = res.body;
+                expect(id).toBeDefined();
+                expect(email).toBeDefined();
+                expect(access_token).toBeDefined();
+
+                return res;
+            });
+
+        cookie = authResponse.get('Set-Cookie');
+
+        // wait 100ms
+        await new Promise((r) => setTimeout(r, 200));
+
+        await request(app.getHttpServer())
+            .post('/auth/revoke-token')
+            .set('Cookie', cookie)
+            .send()
+            .expect(201);
+
+
+        await request(app.getHttpServer())
+            .post('/auth/revoke-token')
+            .set('Cookie', cookie)
+            .send()
+            .expect(401);
     });
 
 });
