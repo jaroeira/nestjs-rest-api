@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User } from 'src/users/user.entity';
+import { User } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 import { configService } from '../config/config.service';
 import { InjectRepository } from '@nestjs/typeorm';

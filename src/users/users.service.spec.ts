@@ -78,10 +78,10 @@ describe('UsersService', () => {
     const user: Partial<User> = { id: 1, email: 'test@test.com', passwordHash: 'sdfsfsdfsdf' };
     repositoryMock.findOneBy.mockReturnValue(Promise.resolve(user));
 
-    const createUserDto: CreateUserDto = { email: 'test@test.com', password: '12345678', firstName: '', lastName: '' };
+    const newUser: Partial<User> = { email: 'test@test.com', firstName: '', lastName: '' };
 
     try {
-      await service.create(createUserDto);
+      await service.create(newUser as User, '1234567');
     } catch (e: any) {
       expect(e.message).toBe('Email in use');
     }
@@ -91,10 +91,11 @@ describe('UsersService', () => {
   it('should encrypt password', async () => {
     repositoryMock.findOneBy.mockReturnValue(Promise.resolve(undefined));
     repositoryMock.save.mockImplementation((x) => (x));
-    const createUserDto: CreateUserDto = { email: 'test@test.com', password: '12345678', firstName: '', lastName: '' };
-    const result = await service.create(createUserDto);
 
-    expect(result.passwordHash).not.toBe(createUserDto.password);
+    const newUser: Partial<User> = { email: 'test@test.com', firstName: '', lastName: '' };
+    const result = await service.create(newUser as User, '12345678');
+
+    expect(result.passwordHash).not.toBe('12345678');
 
   });
 
