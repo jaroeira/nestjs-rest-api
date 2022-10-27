@@ -58,6 +58,10 @@ export class UsersService {
         return this.userRepo.findOneBy({ email });
     }
 
+    findOneByResetPasswordToken(token: string) {
+        return this.userRepo.findOneBy({ resetPasswordToken: token });
+    }
+
     all(): Promise<User[]> {
         return this.userRepo.find();
     }
@@ -112,6 +116,7 @@ export class UsersService {
 
         user.passwordHash = newPasswordHash;
         user.passwordChanged = new Date();
+        user.resetPasswordToken = null;
         const updatedUser = await this.userRepo.save(user);
         return updatedUser;
     }

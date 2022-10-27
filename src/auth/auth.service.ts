@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ForbiddenException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/users/user.entity';
 import { UsersService } from '../users/users.service';
@@ -116,6 +116,28 @@ export class AuthService {
         if (refreshToken.revoked) return null;
 
         return refreshToken;
+    }
+
+    async resetUserPassword(token: string, newPassword: string) {
+
+
+        try {
+            this.jwtService.verify(token, {
+                secret: configService.getValue('JWT_RESET_PASSWORD_SECRET')
+            });
+
+        } catch (error: any) {
+            throw new ForbiddenException('invalid token');
+        }
+
+        const user = await this.usersService.findOneByResetPasswordToken(token);
+
+
+        if (!user) {
+            throw new ForbiddenException('invalid token');
+        }
+
+        return this.usersService.changeUserPassword(user.id, newPassword);
     }
 
     convertExpirationToDate(expiration: string) {

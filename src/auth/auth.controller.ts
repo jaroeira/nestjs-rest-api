@@ -12,6 +12,7 @@ import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { RefreshToken } from './refreshToken.entity';
 import { UserSignupDto } from './dtos/userSignup.dto';
+import { ResetPasswordDto } from './dtos/reset-password.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -127,6 +128,15 @@ export class AuthController {
         await this.mailService.sendUserResetPasswordEmail(user);
 
         return;
+    }
+
+    @Serialize(AuthUserToReturnDto)
+    @Post('/reset-password')
+    resetPassword(@Query('token') token: string, @Body() body: ResetPasswordDto) {
+
+        if (!token) throw new BadRequestException('token is required');
+
+        return this.authService.resetUserPassword(token, body.newPassword);
     }
 
     private setRefreshTokenCookie(refreshToken: { refresh_token: string, expirationDateTime: Date }, res: Response) {
