@@ -40,7 +40,13 @@ export class UsersController {
     @Post()
     @Serialize(UserDto)
     createUser(@Body() body: CreateUserDto) {
-        return this.userService.create(body);
+
+        const user = new User();
+        user.email = body.email;
+        user.firstName = body.firstName;
+        user.lastName = body.lastName
+
+        return this.userService.create(user, body.password, body.isAdmin);
     }
 
 

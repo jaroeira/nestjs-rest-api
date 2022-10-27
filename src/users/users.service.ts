@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateUserDto } from './dtos/create-user.dto';
 import { User } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import { BcryptConstants } from '../constants/bcrypt/constants';
@@ -18,28 +17,30 @@ export class UsersService {
         private mailService: MailService
     ) { }
 
-    async create(userDto: CreateUserDto, isAdmin: boolean = false) {
+    async create(user: User, password: string, isAdmin: boolean = false) {
 
-        await this.throwIfEmailIsNotAvailable(userDto.email);
+        await this.throwIfEmailIsNotAvailable(user.email);
 
         // Hash password with bcrypt
-        const hashedPassword = await bcrypt.hash(userDto.password, BcryptConstants.saltRounds);
+        const hashedPassword = await bcrypt.hash(password, BcryptConstants.saltRounds);
 
         // Create verification token to validate users email
-        const verificationToken = randomBytes(30).toString('hex');
+        if (!isAdmin) {
+            const verificationToken = randomBytes(30).toString('hex');
+            user.verificationToken = verificationToken;
+        }
 
-        const user = new User();
-        user.email = userDto.email;
         user.passwordHash = hashedPassword;
-        user.firstName = userDto.firstName;
-        user.lastName = userDto.lastName;
-        user.verificationToken = verificationToken;
 
-        isAdmin ? user.role = Role.Admin : user.role = Role.User;
+        user.role = isAdmin ? Role.Admin : Role.User;
+
+        if (isAdmin) user.emailVerified = true;
 
         const newUser = await this.userRepo.save(user);
 
-        await this.mailService.sendUserConfirmation(user);
+        if (!isAdmin) {
+            await this.mailService.sendUserConfirmation(user);
+        }
 
         return newUser;
     }
