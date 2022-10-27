@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Put, UseGuards, Request, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Put, UseGuards, Request, ForbiddenException, ParseIntPipe } from '@nestjs/common';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Role } from '../auth/role.enum';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -31,11 +31,8 @@ export class UsersController {
 
     @Get('/:id')
     @Serialize(UserDto)
-    findUser(@Param('id') id: string) {
-        const userId = parseInt(id);
-        if (Number.isNaN(userId)) throw new BadRequestException('id must be a number');
-
-        return this.userService.findOne(userId);
+    findUser(@Param('id', ParseIntPipe) id: number) {
+        return this.userService.findOne(id);
     }
 
 
@@ -50,20 +47,14 @@ export class UsersController {
     @ApiOperation({ summary: 'Update a user' })
     @Put('/:id')
     @Serialize(UserDto)
-    updateUser(@Param('id') id: string, @Body() body: UpdateUserDto) {
-        const userId = parseInt(id);
-        if (Number.isNaN(userId)) throw new BadRequestException('id must be a number');
-
-        return this.userService.update(userId, body);
+    updateUser(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateUserDto) {
+        return this.userService.update(id, body);
     }
 
     @Delete('/:id')
     @Serialize(UserDto)
-    removeUser(@Param('id') id: string) {
-        const userId = parseInt(id);
-        if (Number.isNaN(userId)) throw new BadRequestException('id must be a number');
-
-        return this.userService.remove(userId);
+    removeUser(@Param('id', ParseIntPipe) id: number) {
+        return this.userService.remove(id);
     }
 
 
