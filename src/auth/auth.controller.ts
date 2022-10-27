@@ -116,15 +116,6 @@ export class AuthController {
         };
     }
 
-    private setRefreshTokenCookie(refreshToken: { refresh_token: string, expirationDateTime: Date }, res: Response) {
-
-        const cookieOptions = {
-            httpOnly: true,
-            expires: refreshToken.expirationDateTime
-        };
-
-        res.cookie('refreshToken', refreshToken, cookieOptions);
-    }
 
     @Post('/forgot-password')
     async forgotPassword(@Body() body: ForgotPasswordDto) {
@@ -137,5 +128,16 @@ export class AuthController {
 
         return;
     }
+
+    private setRefreshTokenCookie(refreshToken: { refresh_token: string, expirationDateTime: Date }, res: Response) {
+
+        const cookieOptions = {
+            httpOnly: true,
+            expires: refreshToken.expirationDateTime
+        };
+
+        res.cookie('refreshToken', refreshToken, cookieOptions);
+    }
+
 
 }
