@@ -1,5 +1,5 @@
 import { BadRequestException, Body, Controller, Get, Ip, Post, Query, Request, Res, UseGuards } from '@nestjs/common';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { Serialize } from '../interceptors/serialize.interceptor';
 import { CurrentUser } from '../users/decorators/current-user.decorator';
@@ -88,6 +88,19 @@ export class AuthController {
             email: user.email,
             access_token: accessToken.access_token,
             access_token_expiration: accessToken.expirationDateTime,
+        };
+    }
+
+    @UseGuards(JwtRefreshAuthGuard)
+    @Post('/revoke-token')
+    async revokeRefreshToken(@Body() body: any) {
+
+        const toBeRevokedRTObj: RefreshToken = body.oldRefreshToken;
+
+        await this.authService.revokeRefreshToken(toBeRevokedRTObj);
+
+        return {
+            message: 'token successfully revoked',
         };
     }
 

@@ -55,6 +55,11 @@ export class AuthService {
         return this.refrehTokenRepo.save(refreshToken);
     }
 
+    revokeRefreshToken(toBeRevokedRT: RefreshToken) {
+        toBeRevokedRT.revoked = new Date();
+        return this.saveRefreshToken(toBeRevokedRT);
+    }
+
     verifyUsersEmail(token: string) {
         return this.usersService.verifyUserEmail(token);
     }

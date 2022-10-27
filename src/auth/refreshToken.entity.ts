@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { User } from "../users/user.entity";
 
 @Entity()
@@ -8,6 +8,7 @@ export class RefreshToken {
     id: number;
 
     @Column({ length: 300 })
+    @Index({ unique: true })
     refreshToken: string;
 
     @Column()
