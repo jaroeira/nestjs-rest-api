@@ -53,6 +53,10 @@ export class UsersService {
         return user;
     }
 
+    findOneByEmail(email: string) {
+        return this.userRepo.findOneBy({ email });
+    }
+
     all(): Promise<User[]> {
         return this.userRepo.find();
     }
@@ -65,6 +69,10 @@ export class UsersService {
         user.email = updateUserDto.email;
         const updatedUser = await this.userRepo.save(user);
         return updatedUser;
+    }
+
+    save(user: User) {
+        return this.userRepo.save(user);
     }
 
     async remove(id: number) {

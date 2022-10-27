@@ -64,6 +64,23 @@ export class AuthService {
         return this.usersService.verifyUserEmail(token);
     }
 
+    async generateResetPasswordTokenForUser(email: string) {
+        const user = await this.usersService.findOneByEmail(email);
+
+        if (!user) return null;
+
+        const resetPasswordToken = this.generateJwtToken(
+            user,
+            configService.getValue('JWT_RESET_PASSWORD_SECRET'),
+            configService.getValue('JWT_RESET_PASSWORD_TOKEN_EXPIRATION'),
+        );
+
+        user.resetPasswordToken = resetPasswordToken;
+
+        return this.usersService.save(user);
+
+    }
+
     private generateJwtToken(user: User, secret: string, expiresIn: string, createdByIp?: string) {
         const payload: JwtTokenPayload = { email: user.email, sub: user.id, role: user.role };
 

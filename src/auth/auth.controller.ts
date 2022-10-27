@@ -1,11 +1,13 @@
 import { BadRequestException, Body, Controller, Get, Ip, Post, Query, Request, Res, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
+import { MailService } from '../mail/mail.service';
 import { Serialize } from '../interceptors/serialize.interceptor';
 import { CurrentUser } from '../users/decorators/current-user.decorator';
 import { User } from '../users/user.entity';
 import { AuthService } from './auth.service';
 import { AuthUserToReturnDto } from './dtos/auth-user-to-return.dto';
+import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { RefreshToken } from './refreshToken.entity';
@@ -14,7 +16,10 @@ import { RefreshToken } from './refreshToken.entity';
 @Controller('auth')
 export class AuthController {
 
-    constructor(private authService: AuthService) { }
+    constructor(
+        private authService: AuthService,
+        private mailService: MailService
+    ) { }
 
     // @Serialize(AuthUserToReturnDto)
     @UseGuards(LocalAuthGuard)
@@ -112,6 +117,18 @@ export class AuthController {
         };
 
         res.cookie('refreshToken', refreshToken, cookieOptions);
+    }
+
+    @Post('/forgot-password')
+    async forgotPassword(@Body() body: ForgotPasswordDto) {
+
+        const user = await this.authService.generateResetPasswordTokenForUser(body.email);
+
+        if (!user) return;
+
+        await this.mailService.sendUserResetPasswordEmail(user);
+
+        return;
     }
 
 }

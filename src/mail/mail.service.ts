@@ -22,4 +22,18 @@ export class MailService {
             }
         });
     }
+
+    async sendUserResetPasswordEmail(user: User) {
+        const resetPasswordUrl = `${configService.getValue('API_HOST_URL')}/auth/reset-password?token=${user.resetPasswordToken}`;
+
+        await this.mailerService.sendMail({
+            to: user.email,
+            subject: 'Nestjs REST API - Reset Password',
+            template: './forgot-password',
+            context: {
+                name: user.firstName,
+                resetPasswordUrl
+            }
+        });
+    }
 }

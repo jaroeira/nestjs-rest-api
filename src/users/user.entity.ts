@@ -1,5 +1,5 @@
 import { RefreshToken } from "../auth/refreshToken.entity";
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
 export class User {
@@ -8,6 +8,7 @@ export class User {
     id: number;
 
     @Column({ length: 100, unique: true })
+    @Index()
     email: string;
 
     @Column({ length: 500 })
@@ -30,6 +31,9 @@ export class User {
 
     @Column({ nullable: true })
     passwordChanged: Date;
+
+    @Column({ length: 300, nullable: true })
+    resetPasswordToken: string;
 
     @UpdateDateColumn()
     updatedAt: Date;

@@ -11,11 +11,14 @@ import { JwtRefreshTokenStrategy } from './strategies/jwt-refresh.strategy';
 import { configService } from '../config/config.service';
 import { RefreshToken } from './refreshToken.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { MailModule } from '../mail/mail.module';
+import { MailService } from 'src/mail/mail.service';
 
 
 
 @Module({
   imports: [
+    MailModule,
     UsersModule,
     PassportModule,
     TypeOrmModule.forFeature([RefreshToken]),
@@ -26,7 +29,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       }
     })
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy, JwtRefreshTokenStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy, JwtRefreshTokenStrategy, MailService],
   controllers: [AuthController]
 })
 export class AuthModule { }
