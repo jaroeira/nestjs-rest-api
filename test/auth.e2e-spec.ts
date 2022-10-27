@@ -123,7 +123,7 @@ describe('Auth System (e2e)', () => {
 
         let cookie: any;
 
-        const authResponse = await request.agent(app.getHttpServer())
+        const authResponse = await request(app.getHttpServer())
             .post('/auth/signin')
             .send({ email, password })
             .expect(201)
@@ -133,17 +133,19 @@ describe('Auth System (e2e)', () => {
                 expect(email).toBeDefined();
                 expect(access_token).toBeDefined();
 
-                console.log('access_token-1', res.body);
+                console.log('access_token-1', access_token);
 
                 return res;
             });
 
         cookie = authResponse.get('Set-Cookie');
 
-        // TODO: verify if acess token changed
+        // wait 100ms
+        await new Promise((r) => setTimeout(r, 100));
+
         const refreshResponse = await request(app.getHttpServer())
             .post('/auth/refresh-token')
-            .set('cookie', cookie)
+            .set('Cookie', cookie)
             .send()
             .expect(201)
             .then(res => {
@@ -152,14 +154,12 @@ describe('Auth System (e2e)', () => {
                 expect(email).toBeDefined();
                 expect(access_token).toBeDefined();
 
+                console.log('access_token-2', access_token);
+
                 return res;
             });
 
-        // console.log('authResponse.body.access_token', authResponse.body.access_token);
-        // console.log('refreshResponse.body.access_token', refreshResponse.body.access_token);
-
-
-        // expect(authResponse.body.access_token).not.toBe(refreshResponse.body.access_token);
+        expect(authResponse.body.access_token).not.toBe(refreshResponse.body.access_token);
     });
 
 });
