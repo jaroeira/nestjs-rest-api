@@ -9,6 +9,7 @@ import { Role } from '../auth/role.enum';
 import { randomBytes } from 'crypto';
 import { MailService } from '../mail/mail.service';
 import { deleteAvatarImage } from '../shared/helper/file-helper';
+import { UserDto } from './dtos/user.dto';
 
 @Injectable()
 export class UsersService {
@@ -73,6 +74,11 @@ export class UsersService {
         await this.throwIfEmailIsNotAvailable(updateUserDto.email, id);
 
         user.email = updateUserDto.email;
+        user.firstName = updateUserDto.firstName;
+        user.lastName = updateUserDto.lastName;
+        user.role = updateUserDto.role;
+        user.emailVerified = updateUserDto.emailVerified;
+
         const updatedUser = await this.userRepo.save(user);
         return updatedUser;
     }

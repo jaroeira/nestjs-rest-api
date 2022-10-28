@@ -187,7 +187,7 @@ describe('Users API endpoints (e2e)', () => {
         // Update user
         const updateRes = await request(app.getHttpServer())
             .put('/users/3')
-            .send({ "email": "updated@test.com", "firstName": "Update", "lastName": "test" })
+            .send({ "email": "updated@test.com", "firstName": "Update", "lastName": "test", "role": "user", "emailVerified": true })
             .auth(access_token, { type: 'bearer' })
             .expect(200);
 

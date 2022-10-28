@@ -2,10 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { MailService } from '../mail/mail.service';
 import { Repository } from 'typeorm';
-import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { User } from './user.entity';
 import { UsersService } from './users.service';
+import { Role } from '../auth/role.enum';
 
 export type MockType<T> = {
   [P in keyof T]?: jest.Mock<{}>;
@@ -103,7 +103,7 @@ describe('UsersService', () => {
     repositoryMock.findOneBy.mockReturnValue(Promise.resolve(undefined));
     repositoryMock.save.mockImplementation((x) => (x));
 
-    const updateUsetDto: UpdateUserDto = { email: 'test@test.com' };
+    const updateUsetDto: UpdateUserDto = { email: 'test@test.com', firstName: 'test', lastName: 'test', role: Role.User, emailVerified: true };
 
     try {
       await service.update(1, updateUsetDto);
@@ -117,7 +117,7 @@ describe('UsersService', () => {
     repositoryMock.findOneBy.mockReturnValue(Promise.resolve(user));
     repositoryMock.save.mockImplementation((x) => (x));
 
-    const updateUsetDto: UpdateUserDto = { email: 'test@test.com' };
+    const updateUsetDto: UpdateUserDto = { email: 'test@test.com', firstName: 'test', lastName: 'test', role: Role.User, emailVerified: true };
 
     try {
       await service.update(1, updateUsetDto);
@@ -152,14 +152,14 @@ describe('UsersService', () => {
     repositoryMock.save.mockImplementation((x) => (x));
     repositoryMock.findOneBy.mockReturnValueOnce(Promise.resolve(user)).mockReturnValue(Promise.resolve(undefined));
 
-    const updateUsetDto: UpdateUserDto = { email: 'updated@test.com' };
+    const updateUsetDto: UpdateUserDto = { email: 'updated@test.com', firstName: 'test', lastName: 'test', role: Role.User, emailVerified: true };
     const result = await service.update(1, updateUsetDto);
 
     expect(result).toBeDefined();
     expect(result.email).toBe('updated@test.com');
 
     // if email exists but the id is the same it should not throw error
-    const updateUsetDto2: UpdateUserDto = { email: 'test@test.com' };
+    const updateUsetDto2: UpdateUserDto = { email: 'test@test.com', firstName: 'test', lastName: 'test', role: Role.User, emailVerified: true };
     repositoryMock.findOneBy.mockReturnValue(Promise.resolve(user));
     const result2 = await service.update(1, updateUsetDto2);
 
