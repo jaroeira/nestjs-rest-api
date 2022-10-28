@@ -1,5 +1,5 @@
 import * as fsPromises from 'fs/promises';
-import { configService } from 'src/config/config.service';
+import { configService } from '../../config/config.service';
 
 export async function deleteFile(filePath: string): Promise<void> {
     try {
