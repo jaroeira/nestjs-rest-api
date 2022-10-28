@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
+import * as express from 'express';
+import * as path from 'path';
 
 async function bootstrap() {
   const port = process.env.PORT || 3000;
@@ -9,6 +11,9 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use(cookieParser());
+
+  //Public folder
+  app.use('/images', express.static(path.join(__dirname, 'uploads')));
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('NESTJS REST API - Joao Aroeira')

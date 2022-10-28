@@ -8,6 +8,7 @@ import { UpdateUserDto } from './dtos/update-user.dto';
 import { Role } from '../auth/role.enum';
 import { randomBytes } from 'crypto';
 import { MailService } from '../mail/mail.service';
+import { deleteAvatarImage } from 'src/shared/helper/file-helper';
 
 @Injectable()
 export class UsersService {
@@ -82,6 +83,8 @@ export class UsersService {
 
     async remove(id: number) {
         const user = await this.findOne(id);
+
+        if (user.avatarImageUrl) await deleteAvatarImage(user.avatarImageUrl);
 
         return this.userRepo.remove(user);
     }

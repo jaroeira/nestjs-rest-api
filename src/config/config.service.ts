@@ -109,6 +109,10 @@ class ConfigService {
         };
     }
 
+    public getUserAvatarUploadFolder() {
+        return this.getValue('UPLOAD_USER_AVATAR_FOLDER');
+    }
+
 }
 
 const env = process.env.NODE_ENV || 'development';

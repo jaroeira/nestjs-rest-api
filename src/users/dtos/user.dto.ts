@@ -19,7 +19,7 @@ export class UserDto {
     role: string;
 
     @Expose()
-    emailVerified: boolean;
+    avatarImageUrl: string;
 
     @Expose()
     passwordChanged: Date;

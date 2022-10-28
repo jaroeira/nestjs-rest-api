@@ -14,6 +14,8 @@ import { User } from './user.entity';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiImageFile } from '../shared/decorators/api-file.decorator';
 import { ParseFile } from '../shared/pipes/parse-file.pipe';
+import { configService } from '../config/config.service';
+import { deleteAvatarImage } from '../shared/helper/file-helper';
 
 
 @ApiTags('Users')
@@ -69,7 +71,7 @@ export class UsersController {
 
     @Roles(Role.Admin, Role.User)
     @Post('/change-password')
-    async changeUsersPassword(@Body() body: ChangeUserPasswordDto, @CurrentUser() user: Partial<User>) {
+    async changeUsersPassword(@Body() body: ChangeUserPasswordDto, @CurrentUser() user: User) {
 
         if (user.role !== Role.Admin && user.id !== body.id) {
             throw new ForbiddenException();
@@ -81,16 +83,18 @@ export class UsersController {
     }
 
     @Post('/upload-avatar')
-    @ApiImageFile('avatar', true, './src/uploads/avatars')
-    async uploadAvatar(@UploadedFile(ParseFile) file: Express.Multer.File) {
+    @Roles(Role.Admin, Role.User)
+    @Serialize(UserDto)
+    @ApiImageFile('avatar', true, configService.getUserAvatarUploadFolder())
+    async uploadAvatar(@UploadedFile(ParseFile) file: Express.Multer.File, @CurrentUser() user: User) {
 
-        return {
-            message: 'Uploaded File',
-            path: file.path,
-            filename: file.filename,
-            mimeType: file.mimetype,
-            originalName: file.originalname
-        };
+        if (user.avatarImageUrl) {
+            await deleteAvatarImage(user.avatarImageUrl);
+        }
+
+        user.avatarImageUrl = `${configService.getValue('API_HOST_URL')}/images/avatars/${file.filename}`;
+
+        return this.userService.save(user);
     }
 
 }

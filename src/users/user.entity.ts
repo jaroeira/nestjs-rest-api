@@ -35,12 +35,15 @@ export class User {
     @Column({ length: 300, nullable: true })
     resetPasswordToken: string;
 
+    @Column({ nullable: true })
+    avatarImageUrl: string;
+
     @UpdateDateColumn()
     updatedAt: Date;
 
     @CreateDateColumn()
     createdAt: Date;
 
-    @OneToMany(type => RefreshToken, refreshToken => refreshToken.user, { cascade: true })
+    @OneToMany(type => RefreshToken, refreshToken => refreshToken.user)
     refreshTokens: RefreshToken[];
 }
