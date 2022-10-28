@@ -2,7 +2,7 @@ import { BadRequestException, Body, Controller, Get, Ip, Post, Query, Request, R
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { MailService } from '../mail/mail.service';
-import { Serialize } from '../interceptors/serialize.interceptor';
+import { Serialize } from '../shared/interceptors/serialize.interceptor';
 import { CurrentUser } from '../users/decorators/current-user.decorator';
 import { User } from '../users/user.entity';
 import { AuthService } from './auth.service';

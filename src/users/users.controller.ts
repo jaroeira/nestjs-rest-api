@@ -1,9 +1,9 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Put, UseGuards, Request, ForbiddenException, ParseIntPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards, ForbiddenException, ParseIntPipe, UploadedFile, ParseFilePipeBuilder } from '@nestjs/common';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Role } from '../auth/role.enum';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { Serialize } from '../interceptors/serialize.interceptor';
+import { Serialize } from '../shared/interceptors/serialize.interceptor';
 import { ChangeUserPasswordDto } from './dtos/change-user-password.dto';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
@@ -12,6 +12,9 @@ import { UsersService } from './users.service';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { User } from './user.entity';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiImageFile } from '../shared/decorators/api-file.decorator';
+import { ParseFile } from '../shared/pipes/parse-file.pipe';
+
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -75,6 +78,19 @@ export class UsersController {
         const updatedUser = await this.userService.changeUserPassword(body.id, body.newPassword);
 
         return { message: 'Password changed!', id: updatedUser.id, changedOn: updatedUser.passwordChanged };
+    }
+
+    @Post('/upload-avatar')
+    @ApiImageFile('avatar', true, './src/uploads/avatars')
+    async uploadAvatar(@UploadedFile(ParseFile) file: Express.Multer.File) {
+
+        return {
+            message: 'Uploaded File',
+            path: file.path,
+            filename: file.filename,
+            mimeType: file.mimetype,
+            originalName: file.originalname
+        };
     }
 
 }
