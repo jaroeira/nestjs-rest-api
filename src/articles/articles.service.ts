@@ -25,6 +25,10 @@ export class ArticlesService {
         return article;
     }
 
+    async save(article: Article) {
+        return this.articleRepo.save(article);
+    }
+
     async remove(id: number) {
         const article = await this.findOneById(id);
         return this.articleRepo.remove(article);
@@ -32,15 +36,20 @@ export class ArticlesService {
 
     async getTags(tagNamesList: string[]) {
 
+        // Check if Tags already exist
         const tags = await this.tagRepo.createQueryBuilder('tag')
             .where('tag.tagName IN (:...tagsList)', { tagsList: [...tagNamesList] }).getMany();
 
+        // Map [] of Tag Objects to string[]
         const fetchedTagNames = tags.map(t => t.tagName);
 
+        // Check if any tag is missing
         const missingTagNames = tagNamesList.filter(t => !fetchedTagNames.includes(t));
 
+        // If we have all tags return 
         if (missingTagNames.length === 0) return tags;
 
+        //if not create the tags that are missing
         let missingTags: Tag[] = [];
 
         for (const tagName of missingTagNames) {
@@ -53,6 +62,7 @@ export class ArticlesService {
 
         const allTags = [...tags, ...missingTags];
 
+        // return all tags
         return allTags;
     }
 }

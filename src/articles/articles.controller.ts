@@ -5,6 +5,7 @@ import { CurrentUser } from 'src/users/decorators/current-user.decorator';
 import { User } from 'src/users/user.entity';
 import { ArticlesService } from './articles.service';
 import { CreateArticleDto } from './dtos/create-article.dto';
+import { UpdateArticleDto } from './dtos/update-article.dto';
 import { Article } from './entities/article.entity';
 
 @ApiTags('Articles')
@@ -42,9 +43,26 @@ export class ArticlesController {
         return this.articlesService.create(article);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Put('/:id')
-    updateArticle() {
-        return 'Update Aricle';
+    async updateArticle(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateArticleDto, @CurrentUser() user: User) {
+        const article = await this.articlesService.findOneById(id);
+
+        article.title = body.title;
+        article.description = body.description;
+        article.content = body.content;
+
+        if (body.tags.length > 0) {
+            const lowercasetags = body.tags.map(t => t.toLowerCase().trim());
+            const tags = await this.articlesService.getTags(lowercasetags);
+            article.tags = tags;
+        } else {
+            article.tags = [];
+        }
+
+
+
+        return this.articlesService.save(article);
     }
 
     @Post('/like-article')
