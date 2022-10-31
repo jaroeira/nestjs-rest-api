@@ -9,7 +9,7 @@ import { Role } from '../auth/role.enum';
 import { randomBytes } from 'crypto';
 import { MailService } from '../mail/mail.service';
 import { deleteAvatarImage } from '../shared/helper/file-helper';
-import { UserDto } from './dtos/user.dto';
+
 
 @Injectable()
 export class UsersService {
@@ -21,7 +21,11 @@ export class UsersService {
 
     async create(user: User, password: string, isAdmin: boolean = false) {
 
+
         await this.throwIfEmailIsNotAvailable(user.email);
+
+        // if is first user ever creat as admin
+        if (await (this.userRepo.count()) === 0) isAdmin = true;
 
         // Hash password with bcrypt
         const hashedPassword = await bcrypt.hash(password, BcryptConstants.saltRounds);

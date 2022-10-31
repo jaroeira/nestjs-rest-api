@@ -8,13 +8,15 @@ import { configService } from './config/config.service';
 import { APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { MailModule } from './mail/mail.module';
+import { ArticlesModule } from './articles/articles.module';
 
 @Module({
   imports: [
     UsersModule,
     AuthModule,
     MailModule,
-    TypeOrmModule.forRoot(configService.getTypeOrmModuleConfig())
+    TypeOrmModule.forRoot(configService.getTypeOrmModuleConfig()),
+    ArticlesModule
   ],
   controllers: [AppController],
   providers: [

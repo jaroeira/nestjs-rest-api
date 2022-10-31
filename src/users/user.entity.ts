@@ -1,5 +1,6 @@
 import { RefreshToken } from "../auth/refreshToken.entity";
-import { Column, CreateDateColumn, Entity, Index, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Article } from "../articles/entities/article.entity";
 
 @Entity()
 export class User {
@@ -46,4 +47,10 @@ export class User {
 
     @OneToMany(type => RefreshToken, refreshToken => refreshToken.user)
     refreshTokens: RefreshToken[];
+
+    @OneToMany(type => Article, article => article.createdByUser)
+    articles: Article[];
+
+    @ManyToMany(() => Article)
+    likedArticles: Article[];
 }
