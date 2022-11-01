@@ -24,8 +24,8 @@ export class Article {
     @OneToMany(type => ArticleImage, image => image.article)
     images: ArticleImage[];
 
-    @ManyToMany(() => User)
-    @JoinTable()
+    @ManyToMany(() => User, (user) => user.likedArticles)
+    @JoinTable({ name: 'user_like_article' })
     likedBy: User[];
 
     @ManyToMany(() => Tag)

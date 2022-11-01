@@ -1,5 +1,5 @@
 import { RefreshToken } from "../auth/refreshToken.entity";
-import { Column, CreateDateColumn, Entity, Index, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Article } from "../articles/entities/article.entity";
 
 @Entity()
@@ -52,5 +52,6 @@ export class User {
     articles: Article[];
 
     @ManyToMany(() => Article)
+    @JoinTable({ name: 'user_like_article' })
     likedArticles: Article[];
 }

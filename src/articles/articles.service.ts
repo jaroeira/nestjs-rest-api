@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { User } from 'src/users/user.entity';
 import { Repository } from 'typeorm';
 import { Article } from './entities/article.entity';
 import { Tag } from './entities/tag.entity';
@@ -9,7 +10,8 @@ export class ArticlesService {
 
     constructor(
         @InjectRepository(Article) private articleRepo: Repository<Article>,
-        @InjectRepository(Tag) private tagRepo: Repository<Tag>
+        @InjectRepository(Tag) private tagRepo: Repository<Tag>,
+        @InjectRepository(User) private userRepo: Repository<User>
     ) { }
 
     async create(article: Article) {
@@ -17,16 +19,55 @@ export class ArticlesService {
     }
 
     async findOneById(id: number) {
-        const article = await this.articleRepo.findOneBy({ id });
+
+        const article = await this.articleRepo.findOne({
+            where: {
+                id
+            },
+            relations: {
+                likedBy: true,
+                tags: true,
+                createdByUser: true
+            }
+        });
+
         if (!article) {
             throw new NotFoundException(`No article found with id ${id}`);
         }
+
+
+
+        // const likes = article.likedBy.length;
+
+        // delete article.likedBy;
+        // return { ...article, likes };
 
         return article;
     }
 
     async save(article: Article) {
         return this.articleRepo.save(article);
+    }
+
+    async userLikeArticle(articleId: number, userId: number) {
+        const article = await this.findOneById(articleId);
+
+        const user = await this.userRepo.findOne({
+            where: {
+                id: userId
+            },
+            relations: {
+                likedArticles: true
+            }
+        })
+
+        if (user.likedArticles.some((a: Article) => a.id === articleId)) {
+            user.likedArticles = user.likedArticles.filter((a: Article) => a.id !== articleId);
+        } else {
+            user.likedArticles = [...user.likedArticles, article];
+        }
+
+        return this.userRepo.save(user);
     }
 
     async remove(id: number) {

@@ -1,9 +1,11 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { CurrentUser } from 'src/users/decorators/current-user.decorator';
-import { User } from 'src/users/user.entity';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Serialize } from '../shared/interceptors/serialize.interceptor';
+import { CurrentUser } from '../users/decorators/current-user.decorator';
+import { User } from '../users/user.entity';
 import { ArticlesService } from './articles.service';
+import { ArticleToReturnDto } from './dtos/article-to-return.dto';
 import { CreateArticleDto } from './dtos/create-article.dto';
 import { UpdateArticleDto } from './dtos/update-article.dto';
 import { Article } from './entities/article.entity';
@@ -19,9 +21,10 @@ export class ArticlesController {
         return 'Get Articles';
     }
 
+    @Serialize(ArticleToReturnDto)
     @Get('/:id')
     getArticlesById(@Param('id', ParseIntPipe) id: number) {
-        return this.articlesService.findOneById(id,);
+        return this.articlesService.findOneById(id);
     }
 
     @UseGuards(JwtAuthGuard)
@@ -65,9 +68,10 @@ export class ArticlesController {
         return this.articlesService.save(article);
     }
 
-    @Post('/like-article')
-    likeArticle() {
-        return 'Like Article';
+    @UseGuards(JwtAuthGuard)
+    @Post('/like-article/:id')
+    async likeArticle(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
+        return this.articlesService.userLikeArticle(id, user.id);
     }
 
     @Post('/upload-image')
