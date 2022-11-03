@@ -1,8 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { deleteArticleImage } from 'src/shared/helper/file-helper';
 import { User } from 'src/users/user.entity';
 import { Repository } from 'typeorm';
 import { Article } from './entities/article.entity';
+import { ArticleImage } from './entities/article.image.entity';
 import { Tag } from './entities/tag.entity';
 
 @Injectable()
@@ -11,7 +13,8 @@ export class ArticlesService {
     constructor(
         @InjectRepository(Article) private articleRepo: Repository<Article>,
         @InjectRepository(Tag) private tagRepo: Repository<Tag>,
-        @InjectRepository(User) private userRepo: Repository<User>
+        @InjectRepository(User) private userRepo: Repository<User>,
+        @InjectRepository(ArticleImage) private articleImageRepo: Repository<ArticleImage>
     ) { }
 
     async create(article: Article) {
@@ -35,13 +38,6 @@ export class ArticlesService {
             throw new NotFoundException(`No article found with id ${id}`);
         }
 
-
-
-        // const likes = article.likedBy.length;
-
-        // delete article.likedBy;
-        // return { ...article, likes };
-
         return article;
     }
 
@@ -49,30 +45,74 @@ export class ArticlesService {
         return this.articleRepo.save(article);
     }
 
-    async userLikeArticle(articleId: number, userId: number) {
+    async userLikeArticle(articleId: number, user: User) {
         const article = await this.findOneById(articleId);
 
-        const user = await this.userRepo.findOne({
-            where: {
-                id: userId
-            },
-            relations: {
-                likedArticles: true
-            }
-        })
+        const likesOfUserOnArticle = await this.articleRepo.createQueryBuilder('article')
+            .leftJoin('article.likedBy', 'user')
+            .where('user.id = :userId', { userId: user.id })
+            .andWhere('article.id = :articleId', { articleId: article.id })
+            .getCount();
 
-        if (user.likedArticles.some((a: Article) => a.id === articleId)) {
-            user.likedArticles = user.likedArticles.filter((a: Article) => a.id !== articleId);
+        if (likesOfUserOnArticle === 0) {
+            await this.articleRepo.createQueryBuilder()
+                .relation(Article, 'likedBy')
+                .of(article)
+                .add(user);
+
+            return { message: 'added like to article ' + article.id };
         } else {
-            user.likedArticles = [...user.likedArticles, article];
+            await this.articleRepo.createQueryBuilder()
+                .relation(Article, 'likedBy')
+                .of(article)
+                .remove(user);
+
+            return { message: 'removed like to article ' + article.id };
         }
 
-        return this.userRepo.save(user);
     }
 
     async remove(id: number) {
-        const article = await this.findOneById(id);
+
+        const article = await this.articleRepo.findOne({
+            where: {
+                id
+            },
+            relations: {
+                images: true
+            }
+        });
+
+        if (!article) {
+            throw new NotFoundException(`No article found with id ${id}`);
+        }
+
+        for (const image of article.images) {
+            await deleteArticleImage(image.name);
+        }
+
         return this.articleRepo.remove(article);
+    }
+
+    async addImageToArticle(id: number, filename: string) {
+        const article = await this.articleRepo.findOne({
+            where: {
+                id
+            }
+        });
+
+        if (!article) {
+            await deleteArticleImage(filename);
+            throw new NotFoundException(`No article found with id ${id}`);
+        }
+
+
+        const image = new ArticleImage();
+        image.name = filename;
+        image.article = article;
+
+
+        return this.articleImageRepo.save(image);
     }
 
     async getTags(tagNamesList: string[]) {

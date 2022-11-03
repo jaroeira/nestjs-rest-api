@@ -14,3 +14,10 @@ export async function deleteAvatarImage(avatarImageUrl: string): Promise<void> {
     const filePath = `${configService.getUserAvatarUploadFolder()}/${fileName}`;
     await deleteFile(filePath);
 }
+
+
+export async function deleteArticleImage(articleImageUrl: string): Promise<void> {
+    const fileName = articleImageUrl.substring(articleImageUrl.lastIndexOf('/') + 1, articleImageUrl.length);
+    const filePath = `${configService.getArticleUploadFolder()}/${fileName}`;
+    await deleteFile(filePath);
+}

@@ -113,6 +113,10 @@ class ConfigService {
         return this.getValue('UPLOAD_USER_AVATAR_FOLDER');
     }
 
+    public getArticleUploadFolder() {
+        return this.getValue('UPLOAD_ARTICLE_IMAGE_FOLDER');
+    }
+
 }
 
 const env = process.env.NODE_ENV || 'development';

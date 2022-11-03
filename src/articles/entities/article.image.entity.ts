@@ -7,9 +7,9 @@ export class ArticleImage {
     id: number;
 
     @Column()
-    imageUrl: string;
+    name: string;
 
-    @ManyToOne(type => Article, (user) => user.images, { onDelete: 'CASCADE' })
+    @ManyToOne(type => Article, (article) => article.images, { onDelete: 'CASCADE' })
     article: Article;
 
     @CreateDateColumn()

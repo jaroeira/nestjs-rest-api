@@ -1,5 +1,7 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UploadedFile, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { configService } from '../config/config.service';
+import { ApiImageFile } from '../shared/decorators/api-file.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Serialize } from '../shared/interceptors/serialize.interceptor';
 import { CurrentUser } from '../users/decorators/current-user.decorator';
@@ -9,6 +11,9 @@ import { ArticleToReturnDto } from './dtos/article-to-return.dto';
 import { CreateArticleDto } from './dtos/create-article.dto';
 import { UpdateArticleDto } from './dtos/update-article.dto';
 import { Article } from './entities/article.entity';
+import { ParseFile } from '../shared/pipes/parse-file.pipe';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../auth/role.enum';
 
 @ApiTags('Articles')
 @Controller('articles')
@@ -28,6 +33,7 @@ export class ArticlesController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Roles(Role.Admin)
     @Post()
     async createArticle(@Body() body: CreateArticleDto, @CurrentUser() user: User) {
 
@@ -46,7 +52,10 @@ export class ArticlesController {
         return this.articlesService.create(article);
     }
 
+
+    @Serialize(ArticleToReturnDto)
     @UseGuards(JwtAuthGuard)
+    @Roles(Role.Admin)
     @Put('/:id')
     async updateArticle(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateArticleDto, @CurrentUser() user: User) {
         const article = await this.articlesService.findOneById(id);
@@ -64,21 +73,25 @@ export class ArticlesController {
         }
 
 
-
         return this.articlesService.save(article);
     }
 
     @UseGuards(JwtAuthGuard)
     @Post('/like-article/:id')
     async likeArticle(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
-        return this.articlesService.userLikeArticle(id, user.id);
+        return this.articlesService.userLikeArticle(id, user);
     }
 
-    @Post('/upload-image')
-    uploadImage() {
-        return 'upload image to article';
+    @Post('/upload-image/:id')
+    @UseGuards(JwtAuthGuard)
+    @Roles(Role.Admin)
+    @ApiImageFile('image', true, configService.getArticleUploadFolder())
+    uploadImage(@UploadedFile(ParseFile) file: Express.Multer.File, @Param('id', ParseIntPipe) id: number) {
+        return this.articlesService.addImageToArticle(id, file.filename);
     }
 
+    @UseGuards(JwtAuthGuard)
+    @Roles(Role.Admin)
     @Delete('/:id')
     deleteArticle(@Param('id', ParseIntPipe) id: number) {
         return this.articlesService.remove(id);
