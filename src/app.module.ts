@@ -24,7 +24,8 @@ import { ArticlesModule } from './articles/articles.module';
     {
       provide: APP_PIPE,
       useValue: new ValidationPipe({
-        whitelist: true
+        whitelist: true,
+        transform: true
       })
     },
   ],

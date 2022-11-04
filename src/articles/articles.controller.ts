@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UploadedFile, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, UploadedFile, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { configService } from '../config/config.service';
 import { ApiImageFile } from '../shared/decorators/api-file.decorator';
@@ -14,6 +14,8 @@ import { Article } from './entities/article.entity';
 import { ParseFile } from '../shared/pipes/parse-file.pipe';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/role.enum';
+import { PageOptionsDto } from '../shared/dtos/pagination/page-options.dto';
+import { PaginatedArticlesDto } from './dtos/paginated-articles.dto';
 
 @ApiTags('Articles')
 @Controller('articles')
@@ -21,9 +23,10 @@ export class ArticlesController {
 
     constructor(private articlesService: ArticlesService) { }
 
+    @Serialize(PaginatedArticlesDto)
     @Get()
-    getArticles() {
-        return 'Get Articles';
+    getArticles(@Query() pageOptionsDto: PageOptionsDto, @Query('tag') tag?: string) {
+        return this.articlesService.getPaginatedArticles(pageOptionsDto, tag);
     }
 
     @Serialize(ArticleToReturnDto)

@@ -1,11 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PageMetaDto } from '../shared/dtos/pagination/page-meta.dto';
+import { PageOptionsDto } from '../shared/dtos/pagination/page-options.dto';
 import { deleteArticleImage } from 'src/shared/helper/file-helper';
-import { User } from 'src/users/user.entity';
+import { User } from '../users/user.entity';
 import { Repository } from 'typeorm';
 import { Article } from './entities/article.entity';
 import { ArticleImage } from './entities/article.image.entity';
 import { Tag } from './entities/tag.entity';
+import { PageDto } from '../shared/dtos/pagination/page.dto';
 
 @Injectable()
 export class ArticlesService {
@@ -13,9 +16,31 @@ export class ArticlesService {
     constructor(
         @InjectRepository(Article) private articleRepo: Repository<Article>,
         @InjectRepository(Tag) private tagRepo: Repository<Tag>,
-        @InjectRepository(User) private userRepo: Repository<User>,
         @InjectRepository(ArticleImage) private articleImageRepo: Repository<ArticleImage>
     ) { }
+
+    async getPaginatedArticles(pageOptionsDto: PageOptionsDto, tag?: string) {
+
+        let queryBuilder = this.articleRepo.createQueryBuilder('article')
+            .leftJoinAndSelect('article.tags', 'tag')
+            .leftJoinAndSelect('article.images', 'article_image')
+            .leftJoinAndSelect('article.createdByUser', 'user')
+
+
+        queryBuilder.orderBy('article.createdAt', pageOptionsDto.order)
+            .skip(pageOptionsDto.skip)
+            .take(pageOptionsDto.take)
+
+        if (tag) queryBuilder = queryBuilder.where('tag.tagName = :tagName', { tagName: tag });
+
+        const itemCount = await queryBuilder.getCount();
+        const { entities } = await queryBuilder.getRawAndEntities();
+
+        const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+
+        return new PageDto(entities, pageMetaDto);
+
+    }
 
     async create(article: Article) {
         return this.articleRepo.save(article);
@@ -30,7 +55,8 @@ export class ArticlesService {
             relations: {
                 likedBy: true,
                 tags: true,
-                createdByUser: true
+                createdByUser: true,
+                images: true
             }
         });
 
