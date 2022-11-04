@@ -15,6 +15,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/role.enum';
 import { PageOptionsDto } from '../shared/dtos/pagination/page-options.dto';
 import { PaginatedArticlesDto } from './dtos/paginated-articles.dto';
+import { CreatedArticleToReturnDto } from './dtos/created-article-to-return.dto';
 
 
 @ApiTags('Articles')
@@ -35,6 +36,7 @@ export class ArticlesController {
         return this.articlesService.findOneById(id);
     }
 
+    @Serialize(CreatedArticleToReturnDto)
     @UseGuards(JwtAuthGuard)
     @Roles(Role.Admin)
     @Post()
