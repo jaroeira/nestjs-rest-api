@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { getHeapStatistics } from 'v8';
 import { ArticlesService } from './articles.service';
 import { Article } from './entities/article.entity';
+import { ArticleImage } from './entities/article.image.entity';
 import { Tag } from './entities/tag.entity';
 
 export type MockType<T> = {
@@ -22,6 +22,7 @@ describe('ArticlesService', () => {
   let service: ArticlesService;
   let articleRepositoryMock: MockType<Repository<Article>>;
   let tagRepositoryMock: MockType<Repository<Tag>>;
+  let articleImageRepositoryMock: MockType<Repository<ArticleImage>>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -35,12 +36,17 @@ describe('ArticlesService', () => {
           provide: getRepositoryToken(Tag),
           useFactory: repositoryMockFactory
         },
+        {
+          provide: getRepositoryToken(ArticleImage),
+          useFactory: repositoryMockFactory
+        },
       ],
     }).compile();
 
     service = module.get<ArticlesService>(ArticlesService);
     articleRepositoryMock = module.get(getRepositoryToken(Article));
     tagRepositoryMock = module.get(getRepositoryToken(Tag));
+    articleImageRepositoryMock = module.get(getRepositoryToken(ArticleImage));
   });
 
   it('should be defined', () => {

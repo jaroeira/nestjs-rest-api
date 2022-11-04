@@ -2,13 +2,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PageMetaDto } from '../shared/dtos/pagination/page-meta.dto';
 import { PageOptionsDto } from '../shared/dtos/pagination/page-options.dto';
-import { deleteArticleImage } from 'src/shared/helper/file-helper';
+import { deleteArticleImage, deleteArticleImages } from '../shared/helper/file-helper';
 import { User } from '../users/user.entity';
 import { Repository } from 'typeorm';
 import { Article } from './entities/article.entity';
 import { ArticleImage } from './entities/article.image.entity';
 import { Tag } from './entities/tag.entity';
 import { PageDto } from '../shared/dtos/pagination/page.dto';
+import { UpdateArticleDto } from './dtos/update-article.dto';
+import { CreateArticleDto } from './dtos/create-article.dto';
 
 @Injectable()
 export class ArticlesService {
@@ -42,8 +44,21 @@ export class ArticlesService {
 
     }
 
-    async create(article: Article) {
-        return this.articleRepo.save(article);
+    async create(createArticleDto: CreateArticleDto, user: User) {
+
+        const article = new Article();
+        article.title = createArticleDto.title;
+        article.description = createArticleDto.description;
+        article.content = createArticleDto.content;
+        article.createdByUser = user;
+
+        if (createArticleDto.tags.length > 0) {
+            const lowercasetags = createArticleDto.tags.map(t => t.toLowerCase());
+            const tags = await this.getTags(lowercasetags);
+            article.tags = tags;
+        }
+
+        return this.save(article);
     }
 
     async findOneById(id: number) {
@@ -96,6 +111,32 @@ export class ArticlesService {
             return { message: 'removed like to article ' + article.id };
         }
 
+    }
+
+    async update(id: number, updateArticleDto: UpdateArticleDto) {
+        const article = await this.findOneById(id);
+
+        article.title = updateArticleDto.title;
+        article.description = updateArticleDto.description;
+        article.content = updateArticleDto.content;
+
+        if (updateArticleDto.tags.length > 0) {
+            const lowercasetags = updateArticleDto.tags.map(t => t.toLowerCase().trim());
+            const tags = await this.getTags(lowercasetags);
+            article.tags = tags;
+        } else {
+            article.tags = [];
+        }
+
+        const currentArticleFiles = article.images.map(i => i.name);
+
+        if (currentArticleFiles.length > 0) {
+            const imageFilesToDelete: string[] = currentArticleFiles.filter(fileName => !updateArticleDto.images.includes(fileName));
+            await this.deleteImagesFromArticle(article, imageFilesToDelete);
+        }
+
+        await this.save(article);
+        return this.findOneById(article.id);
     }
 
     async remove(id: number) {
@@ -171,5 +212,21 @@ export class ArticlesService {
 
         // return all tags
         return allTags;
+    }
+
+    async deleteImagesFromArticle(article: Article, imageNames: string[]) {
+        if (imageNames.length === 0) return;
+
+        const imagesToDelete = article.images.filter(image => imageNames.includes(image.name));
+        const imagesIdsToDelete = imagesToDelete.map(image => image.id);
+
+
+        await this.articleImageRepo.createQueryBuilder('article_image')
+            .delete()
+            .from(ArticleImage)
+            .where('article_image.id IN (:...imagesIdsToDelete)', { imagesIdsToDelete })
+            .execute();
+
+        await deleteArticleImages(imageNames);
     }
 }

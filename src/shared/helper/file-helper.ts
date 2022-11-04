@@ -21,3 +21,13 @@ export async function deleteArticleImage(articleImageUrl: string): Promise<void>
     const filePath = `${configService.getArticleUploadFolder()}/${fileName}`;
     await deleteFile(filePath);
 }
+
+export async function deleteArticleImages(articleImageUrls: string[]) {
+    const promises: Promise<void>[] = [];
+
+    for (const articleImageUrl of articleImageUrls) {
+        promises.push(deleteArticleImage(articleImageUrl));
+    }
+
+    await Promise.all(promises);
+}

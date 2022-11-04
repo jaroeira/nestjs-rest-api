@@ -40,4 +40,5 @@ lerna-debug.log*
 
 # Uploads
 /src/uploads/avatars/*
+/src/uploads/article_images/*
 !/src/uploads/avatars/.gitkeep

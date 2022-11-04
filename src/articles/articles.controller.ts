@@ -10,12 +10,12 @@ import { ArticlesService } from './articles.service';
 import { ArticleToReturnDto } from './dtos/article-to-return.dto';
 import { CreateArticleDto } from './dtos/create-article.dto';
 import { UpdateArticleDto } from './dtos/update-article.dto';
-import { Article } from './entities/article.entity';
 import { ParseFile } from '../shared/pipes/parse-file.pipe';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/role.enum';
 import { PageOptionsDto } from '../shared/dtos/pagination/page-options.dto';
 import { PaginatedArticlesDto } from './dtos/paginated-articles.dto';
+
 
 @ApiTags('Articles')
 @Controller('articles')
@@ -39,20 +39,7 @@ export class ArticlesController {
     @Roles(Role.Admin)
     @Post()
     async createArticle(@Body() body: CreateArticleDto, @CurrentUser() user: User) {
-
-        const article = new Article();
-        article.title = body.title;
-        article.description = body.description;
-        article.content = body.content;
-        article.createdByUser = user;
-
-        if (body.tags.length > 0) {
-            const lowercasetags = body.tags.map(t => t.toLowerCase());
-            const tags = await this.articlesService.getTags(lowercasetags);
-            article.tags = tags;
-        }
-
-        return this.articlesService.create(article);
+        return this.articlesService.create(body, user);
     }
 
 
@@ -61,22 +48,7 @@ export class ArticlesController {
     @Roles(Role.Admin)
     @Put('/:id')
     async updateArticle(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateArticleDto, @CurrentUser() user: User) {
-        const article = await this.articlesService.findOneById(id);
-
-        article.title = body.title;
-        article.description = body.description;
-        article.content = body.content;
-
-        if (body.tags.length > 0) {
-            const lowercasetags = body.tags.map(t => t.toLowerCase().trim());
-            const tags = await this.articlesService.getTags(lowercasetags);
-            article.tags = tags;
-        } else {
-            article.tags = [];
-        }
-
-
-        return this.articlesService.save(article);
+        return this.articlesService.update(id, body);
     }
 
     @UseGuards(JwtAuthGuard)

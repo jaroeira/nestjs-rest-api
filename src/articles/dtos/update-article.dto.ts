@@ -18,4 +18,8 @@ export class UpdateArticleDto {
     @IsArray()
     @IsString({ each: true })
     tags: string[];
+
+    @IsArray()
+    @IsString({ each: true })
+    images: string[];
 }
