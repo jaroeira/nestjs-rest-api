@@ -16,6 +16,7 @@ import { Role } from '../auth/role.enum';
 import { PageOptionsDto } from '../shared/dtos/pagination/page-options.dto';
 import { PaginatedArticlesDto } from './dtos/paginated-articles.dto';
 import { CreatedArticleToReturnDto } from './dtos/created-article-to-return.dto';
+import { ImageToReturnDto } from './dtos/image-to-return.dto';
 
 
 @ApiTags('Articles')
@@ -59,6 +60,7 @@ export class ArticlesController {
         return this.articlesService.userLikeArticle(id, user);
     }
 
+    @Serialize(ImageToReturnDto)
     @Post('/upload-image/:id')
     @UseGuards(JwtAuthGuard)
     @Roles(Role.Admin)

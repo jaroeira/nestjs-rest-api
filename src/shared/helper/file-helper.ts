@@ -31,3 +31,12 @@ export async function deleteArticleImages(articleImageUrls: string[]) {
 
     await Promise.all(promises);
 }
+
+export async function exists(path: string): Promise<boolean> {
+    try {
+        await fsPromises.access(path);
+        return true;
+    } catch {
+        return false;
+    }
+}
