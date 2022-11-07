@@ -21,48 +21,54 @@ Features:
 - Article CRUD including upload of images;
 - Unit tests and e2e tests
 
-## Installation
+## 🔧 Runing the project
 
-```bash
-$ npm install
-```
+- Clone the repo on your local machine
+- Navigate on your command line interface to the root folder of the project
 
-## Running the app
+### Before runing the project: Create the environment variables file:
 
-```bash
-# development
-$ npm run start
+- Create a .env.development file in the root folder of the project with the following variables:
 
-# watch mode
-$ npm run start:dev
+- API Host Url
+API_HOST_URL=http://localhost:3000
 
-# production mode
-$ npm run start:prod
-```
+- Database
+POSTGRES_HOST=db
+POSTGRES_PORT=5432
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DATABASE=postgres
+SYNCHRONIZE=true
 
-## Test
+- JWT
+JWT_ACCESS_TOKEN_SECRET=secret
+JWT_ACCESS_TOKEN_EXPIRATION=50m
+JWT_REFRESH_TOKEN_SECRET=secret2
+JWT_REFRESH_TOKEN_EXPIRATION=7d
 
-```bash
-# unit tests
-$ npm run test
+- Email
+EMAIL_HOST=smtp.yourserver.com
+EMAIL_ID=credential@yourserver.com
+EMAIL_PASSWORD=yourpassword
+EMAIL_FROM=credential@yourserver.com
 
-# e2e tests
-$ npm run test:e2e
+- Reset Password 
+JWT_RESET_PASSWORD_SECRET=resetpass
+JWT_RESET_PASSWORD_TOKEN_EXPIRATION=1d
 
-# test coverage
-$ npm run test:cov
-```
+- uploads folders
+UPLOAD_USER_AVATAR_FOLDER=./src/uploads/avatars
+UPLOAD_ARTICLE_IMAGE_FOLDER=./src/uploads/article_images
 
-## Support
+### Using Docker to run the project:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- Make sure you have Docker installed on your local machine
+- - Navigate on your command line interface to the root folder of the project
+- Enter the command: docker-compose up -d
+- Wait until all the containers are running
+- Open a browser and access the project on http://localhost:3000
+- To stop the project enter the command: docker-compose down
 
-## Stay in touch
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
 
-## License
-
-Nest is [MIT licensed](LICENSE).
