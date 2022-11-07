@@ -70,5 +70,7 @@ API_HOST_URL=http://localhost:3000
 - Open a browser and access the project on http://localhost:3000
 - To stop the project enter the command: docker-compose down
 
+<p align="center">Copyright © 2022 João Aroeira</p>
+
 
 
